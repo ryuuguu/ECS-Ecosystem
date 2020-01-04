@@ -30,7 +30,6 @@ public class ECSEcoSetup : MonoBehaviour {
 
     private void Start() {
         TestAutotrophs();
-        TestCellData();
     }
 
     void InitCellRanges(Vector2Int size) {
@@ -44,42 +43,36 @@ public class ECSEcoSetup : MonoBehaviour {
         uint seed = 15;
         
         Random random =new  Random(seed);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 9; i++) {
             var instance = entityManager.CreateEntity();
             var pos = random.NextFloat2();
             entityManager.AddComponentData(instance, new PosXY() {Value =pos});
-            entityManager.AddComponentData(instance, new Energy {Value =random.NextFloat()*100 });
-            entityManager.AddComponentData(instance, new GrowSpeed {Value =1 });
+            entityManager.AddComponentData(instance, new Energy {Value =0});
+            entityManager.AddComponentData(instance, new GrowSpeed {Value =0.5f });
+            
             var rect = new float4();
             rect[0] = (math.floor(pos.x * size.x)) / size.x;
             rect[2] = rect[0] + 1.0f / size.x;
             rect[1] = (math.floor(pos.y * size.y)) / size.y;
             rect[3] = rect[1] + 1.0f / size.y;
             entityManager.AddSharedComponentData(instance, new Cell {rect = rect});
+            /*
+            entityManager.AddChunkComponentData<CellEnergyChunk>(instance);
+            var entityChunk = entityManager.GetChunk(instance);
+            entityManager.SetChunkComponentData<CellEnergyChunk>(entityChunk, 
+                new CellEnergyChunk(){Value = 0f});
+                */
+            
+            
         }
+        EntityQueryDesc ChunksWithoutCellEnergyChunkDesc = new EntityQueryDesc() {
+            None = new ComponentType[] {ComponentType.ChunkComponent<CellEnergyChunk>()}
+        };
+        var ChunksWithoutCellEnergyChunk = entityManager.CreateEntityQuery(ChunksWithoutCellEnergyChunkDesc);
+        entityManager.AddChunkComponentData<CellEnergyChunk>(ChunksWithoutCellEnergyChunk,
+            new CellEnergyChunk() {Value = 0F});
     }
-    
-    void TestCellData() {
-        var settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
-        var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-        for (int x = 0;x < size.x; x++) {
-            for (int y = 0; y < size.y; y++) {
-                var instance = entityManager.CreateEntity();
-                entityManager.AddChunkComponentData<CellEnergyChunk>(instance);
-                var entityChunk = entityManager.GetChunk(instance);
-                entityManager.SetChunkComponentData<CellEnergyChunk>(entityChunk, 
-                    new CellEnergyChunk(){Value = 0});
-                var rect = new float4();
-                rect[0] = (float) x / size.x;
-                rect[2] = rect[0] + 1.0f / size.x;
-                rect[1] = (float) y / size.y;
-                rect[3] = rect[1] + 1.0f / size.y;
-                entityManager.AddSharedComponentData(instance, new Cell {rect = rect});
-            }
-        }
-    }
-    
     void CellInit() {
         zDead = zDeadSetter;
         

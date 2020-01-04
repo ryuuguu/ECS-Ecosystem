@@ -391,7 +391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6476bbb2b348c4638aecd6eb095f5664, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 3, y: 3}
+  size: {x: 2, y: 2}
   worldSize: 10
   holder: {fileID: 0}
   prefabCell: {fileID: 0}
