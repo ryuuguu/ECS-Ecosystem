@@ -39,7 +39,7 @@ namespace Tests {
         public void TxAutotrophLight_Test() {
             World.CreateSystem<TxAutotrophLight>().Update();
             var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
-            Assert.AreEqual(Enviroment.defualtLightEnergy, m_Manager.GetComponentData<EnergyStore>(plant).Value,
+            Assert.AreEqual(Enviroment.defualtLightEnergy*Enviroment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
         }
         
