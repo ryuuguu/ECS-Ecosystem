@@ -24,6 +24,9 @@ namespace EcoSim {
     
     public struct TxAutotroph : IComponentData{}
     
+    [GenerateAuthoringComponent]
+    public struct StemGO : IComponentData{}
+    
     public struct Leaf : IComponentData {
         public float Value;
     }
