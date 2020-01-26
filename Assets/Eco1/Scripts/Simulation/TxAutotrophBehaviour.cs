@@ -14,17 +14,27 @@ using Unity.Burst;
 namespace EcoSim {
     
     public class TxAutotrophBehaviour : MonoBehaviour, IConvertGameObjectToEntity {
-        public static Entity testHelperPrefab;
         void IConvertGameObjectToEntity.Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
             if (enabled) {
-                dstManager.AddComponentData(entity, new  TxAutotroph());
-                dstManager.AddComponentData(entity, new  EnergyStore());
+                AddComponentDatas(entity, dstManager);
             }
-
-            testHelperPrefab = entity;
+            
+        }
+        public static void AddComponentDatas(Entity entity, EntityManager dstManager){
+            dstManager.AddComponentData(entity, new  TxAutotroph());
+            dstManager.AddComponentData(entity, new  EnergyStore(){Value = 0});
+            dstManager.AddComponentData(entity, new  TxAutotrophMaintenance() {
+                baseValue = 1,
+                leafMultiple = 0.1f,
+                heightMultiple = 0.1f
+            });
+            dstManager.AddComponentData(entity, new  Leaf() {Value = 1});
+            dstManager.AddComponentData(entity, new  Height() {Value = 1});
         }
     }
+    
+    
     
     
     /// <summary>
@@ -32,7 +42,6 @@ namespace EcoSim {
     ///  add to other system energy stores
     /// </summary>
     [BurstCompile]
-    
     public class TxAutotrophLight : JobComponentSystem {
         EntityQuery m_Group;
         protected override void OnCreate() {
@@ -59,6 +68,37 @@ namespace EcoSim {
         }
     }
 
+    [BurstCompile]
+    public class TxAutotrophPayMaintenance : JobComponentSystem {
+        EntityQuery m_Group;
+        protected override void OnCreate() {
+            m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
+                ComponentType.ReadOnly<TxAutotroph>(),
+                ComponentType.ReadOnly<TxAutotrophMaintenance>(),
+                ComponentType.ReadOnly<Leaf>(),
+                ComponentType.ReadOnly<Height>()
+            );
+        }
+
+        struct PayMaintenance : IJobForEach<EnergyStore, TxAutotroph, TxAutotrophMaintenance, Leaf, Height> {
+            public void Execute(ref EnergyStore energyStore, 
+                [ReadOnly] ref TxAutotroph txAutotroph, 
+                [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
+                [ReadOnly] ref Leaf leaf,
+                [ReadOnly] ref Height height
+            ) {
+                energyStore.Value -= txAutotrophMaintenance.baseValue + 
+                                     txAutotrophMaintenance.leafMultiple * leaf.Value +
+                    txAutotrophMaintenance.heightMultiple * height.Value;
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            PayMaintenance job = new PayMaintenance() { };
+            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            return jobHandle;
+        }
+    }
 
     
 }

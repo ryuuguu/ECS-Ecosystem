@@ -18,10 +18,14 @@ namespace Tests {
     [TestFixture]
     //[Category("ECS Test")]
     public class TxAutotrophTest : ECSTestsFixture {
-
+        protected Entity plant;
+        
         [SetUp]
         public override void Setup() {
             base.Setup();
+            plant = m_Manager.CreateEntity();
+            TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager);
+            m_Manager.AddComponentData(plant,new Translation(){Value = new float3(1,1,1)});
             Enviroment.defualtLightEnergy = 10;
         }
 
@@ -33,15 +37,20 @@ namespace Tests {
 
         [Test]
         public void TxAutotrophLight_Test() {
-            var plant = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(plant, new TxAutotroph() { });
-            m_Manager.AddComponentData(plant, new EnergyStore() {Value = 0});
-            m_Manager.AddComponentData(plant,new Translation(){Value = new float3(1,1,1)});
             World.CreateSystem<TxAutotrophLight>().Update();
             var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
             Assert.AreEqual(Enviroment.defualtLightEnergy, m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
         }
+        
+        [Test]
+        public void TxAutotrophPayMaintenance_Test() {
+            World.CreateSystem<TxAutotrophPayMaintenance>().Update();
+            var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
+            Assert.AreEqual( -1.2f, m_Manager.GetComponentData<EnergyStore>(plant).Value,
+                "EnergyStore");
+        }
+        
     }
 
 

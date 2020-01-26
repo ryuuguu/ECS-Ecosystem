@@ -12,8 +12,10 @@ namespace EcoSim {
         public float Value;
     }
     
-    public struct BaseMaintenanceEnergy {
-        public float Value;  
+    public struct TxAutotrophMaintenance : IComponentData {
+        public float baseValue;
+        public float leafMultiple;
+        public float heightMultiple;
     }
 
     #endregion
