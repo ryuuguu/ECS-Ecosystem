@@ -19,12 +19,28 @@ namespace Tests {
     //[Category("ECS Test")]
     public class TxAutotrophTest : ECSTestsFixture {
         protected Entity plant;
+        protected Entity stem;
+        protected Entity leaf;
+        protected Entity seedPod;
         
         [SetUp]
         public override void Setup() {
             base.Setup();
             plant = m_Manager.CreateEntity();
-            TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager);
+            
+            stem = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(stem,new Translation(){Value = new float3(1,1,1)});
+            m_Manager.AddComponentData(stem,new NonUniformScale(){Value = new float3(1,1,1)});
+
+            leaf = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(leaf,new Translation(){Value = new float3(1,1,1)});
+            m_Manager.AddComponentData(leaf,new NonUniformScale(){Value = new float3(1,1,1)});
+            
+            seedPod =  m_Manager.CreateEntity();
+            m_Manager.AddComponentData(seedPod,new Translation(){Value = new float3(1,1,1)});
+            m_Manager.AddComponentData(seedPod,new NonUniformScale(){Value = new float3(1,1,1)});
+
+            TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager,stem, leaf,seedPod);
             m_Manager.AddComponentData(plant,new Translation(){Value = new float3(1,1,1)});
             Enviroment.defualtLightEnergy = 10;
         }
@@ -33,8 +49,7 @@ namespace Tests {
         public override void TearDown() {
             base.TearDown();
         }
-
-
+        
         [Test]
         public void TxAutotrophLight_Test() {
             World.CreateSystem<TxAutotrophLight>().Update();

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace EcoSim {
 
@@ -30,8 +31,11 @@ namespace EcoSim {
 
     public struct TxAutotrophParts : IComponentData {
         public Entity stem;
+        public float3 stemScale;
         public Entity leaf;
+        public float3 leafScale;
         public Entity seedPod;
+        public float3 seedPodScale;
     }
     
     public struct Leaf : IComponentData {
@@ -57,7 +61,8 @@ namespace EcoSim {
     }
 
     
-    public struct LeafMesh : IComponentData{}
-    public struct SeedPodMesh : IComponentData{}
+    public struct StemObject : IComponentData{}
+    public struct LeafObject : IComponentData{}
+    public struct SeedPodObject : IComponentData{}
     #endregion 
 }
