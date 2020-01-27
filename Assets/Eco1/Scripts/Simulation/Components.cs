@@ -4,7 +4,12 @@ using Unity.Entities;
 
 namespace EcoSim {
 
-   
+    
+    #region Misc
+    
+    public struct TxInitialize : IComponentData{}
+    
+    #endregion
     
     #region Life
     
@@ -15,17 +20,19 @@ namespace EcoSim {
     
     #region Taxon Autotroph
    
+    public struct TxAutotroph : IComponentData{}
+    
     public struct TxAutotrophMaintenance : IComponentData {
         public float baseValue;
         public float leafMultiple;
         public float heightMultiple;
     }
 
-    
-    public struct TxAutotroph : IComponentData{}
-    
-    [GenerateAuthoringComponent]
-    public struct StemGO : IComponentData{}
+    public struct TxAutotrophParts : IComponentData {
+        public Entity stem;
+        public Entity leaf;
+        public Entity seedPod;
+    }
     
     public struct Leaf : IComponentData {
         public float Value;
@@ -48,5 +55,9 @@ namespace EcoSim {
         public float maxHeight; //max Height
         public float seedSize;  //Size of one seed
     }
+
+    
+    public struct LeafMesh : IComponentData{}
+    public struct SeedPodMesh : IComponentData{}
     #endregion 
 }

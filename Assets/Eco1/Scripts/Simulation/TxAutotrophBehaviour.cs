@@ -41,6 +41,8 @@ namespace EcoSim {
                 maxLeaf = 5,
                 seedSize = 5
             });
+            dstManager.AddComponentData(entity, new TxInitialize());
+            dstManager.AddComponentData(entity, new TxAutotrophParts());
             
         }
     }
@@ -48,6 +50,19 @@ namespace EcoSim {
     
     
     
+    //[UpdateAfter(typeof(BeginInitializationEntityCommandBufferSystem))]
+    //[UpdateBefore(typeof(BeginSimulationEntityCommandBufferSystem))]
+    public  class TxAutotrophInitialize : JobComponentSystem
+    {
+      
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            
+            Entities.ForEach((DynamicBuffer<Child> children,ref TxAutotrophParts txAutotrophParts) => {
+                txAutotrophParts.stem = children[0].Value;
+            }).Run();
+            return default;
+        }
+    }
     /// <summary>
     ///  receive light
     ///  add to other system energy stores
@@ -64,12 +79,10 @@ namespace EcoSim {
             );
         }
 
-        struct GainEnergy : IJobForEach<EnergyStore,
-            TxAutotroph,
+        struct TxGainEnergy : IJobForEach<EnergyStore,
             Translation,
             Leaf> {
-            public void Execute(ref EnergyStore energyStore, 
-                [ReadOnly] ref TxAutotroph txAutotroph, 
+            public void Execute(ref EnergyStore energyStore,
                 [ReadOnly] ref  Translation translation,
                 [ReadOnly] ref Leaf leaf) {
                 energyStore.Value += Enviroment.LightEnergy(translation.Value)*Enviroment.Fitness(leaf.Value) ;
@@ -77,12 +90,15 @@ namespace EcoSim {
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            GainEnergy job = new GainEnergy() { };
+            TxGainEnergy job = new TxGainEnergy() { };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             return jobHandle;
         }
     }
 
+    
+    
+    
     [UpdateAfter(typeof(TxAutotrophLight))]
     [BurstCompile]
     public class TxAutotrophPayMaintenance : JobComponentSystem {
@@ -96,9 +112,8 @@ namespace EcoSim {
             );
         }
 
-        struct PayMaintenance : IJobForEach<EnergyStore, TxAutotroph, TxAutotrophMaintenance, Leaf, Height> {
-            public void Execute(ref EnergyStore energyStore, 
-                [ReadOnly] ref TxAutotroph txAutotroph, 
+        struct PayMaintenance : IJobForEach<EnergyStore, TxAutotrophMaintenance, Leaf, Height> {
+            public void Execute(ref EnergyStore energyStore,  
                 [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
                 [ReadOnly] ref Leaf leaf,
                 [ReadOnly] ref Height height
@@ -130,12 +145,11 @@ namespace EcoSim {
             );
         }
 
-        struct Grow : IJobForEach<EnergyStore, Leaf, Height, Seed, TxAutotroph, TxAutotrophGenome> {
+        struct Grow : IJobForEach<EnergyStore, Leaf, Height, Seed, TxAutotrophGenome> {
             public void Execute(ref EnergyStore energyStore,
                  ref Leaf leaf,
                  ref Height height,
-                 ref Seed seed,
-                [ReadOnly] ref TxAutotroph txAutotroph, 
+                 ref Seed seed, 
                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
                 
             ) {
