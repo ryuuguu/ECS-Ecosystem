@@ -192,6 +192,7 @@ namespace EcoSim {
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
             Grow job = new Grow() { ecb=ecb };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             return jobHandle;
         }
     }
