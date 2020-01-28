@@ -65,12 +65,8 @@ namespace EcoSim {
                 seedPod = seedPodEntity,
                 seedPodScale = dstManager.GetComponentData<NonUniformScale>(seedPodEntity).Value,
             });
-            
         }
-
-       
     }
-    
     
     /// <summary>
     ///  receive light
@@ -94,7 +90,7 @@ namespace EcoSim {
             public void Execute(ref EnergyStore energyStore,
                 [ReadOnly] ref  Translation translation,
                 [ReadOnly] ref Leaf leaf) {
-                energyStore.Value += Enviroment.LightEnergy(translation.Value)*Enviroment.Fitness(leaf.Value) ;
+                energyStore.Value += Environment.LightEnergy(translation.Value)*Environment.Fitness(leaf.Value) ;
             }
         }
 
@@ -140,7 +136,7 @@ namespace EcoSim {
         }
     }
 
-    [UpdateAfter(typeof(TxAutotrophMaintenance))]
+    [UpdateAfter(typeof(TxAutotrophPayMaintenance))]
     [BurstCompile]
     public class TxAutotrophGrow : JobComponentSystem {
         EntityQuery m_Group;
@@ -179,15 +175,14 @@ namespace EcoSim {
                     {Value = txAutotrophParts.stemScale*height.Value});
                 leaf.Value += leafGrow;
                 ecb.SetComponent(index, txAutotrophParts.leaf, new NonUniformScale()
-                    {Value = txAutotrophParts.stemScale*leaf.Value});
+                    {Value = txAutotrophParts.leafScale*leaf.Value});
                 seed.Value += seedGrow;
                 ecb.SetComponent(index, txAutotrophParts.seedPod, new NonUniformScale()
                     {Value = txAutotrophParts.seedPodScale*seed.Value});
                 energyStore.Value -= heightGrow + leafGrow + seedGrow;
             }
-            
         }
-
+        
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
             Grow job = new Grow() { ecb=ecb };
@@ -196,5 +191,127 @@ namespace EcoSim {
             return jobHandle;
         }
     }
+    
+    
+  /*  
+    [UpdateAfter(typeof(TxAutotrophMakeSproutSystem))]
+    [BurstCompile]
+    public class TxAutotrophSproutSystem : ComponentSystem {
+        
+        protected override void OnUpdate() {
+            Entities
+                .ForEach((ref TxAutotrophSprout txAutotrophSprout) => {
+                    var sprout = EntityManager.Instantiate(Environment.prefabPlantStatic);
+                    EntityManager.SetComponentData(sprout, new Translation(){Value = txAutotrophSprout.location});
+            });
+        }
+    }
+    
+    
+    
+    */
+    
+    [UpdateAfter(typeof(TxAutotrophMakeSproutSystem))]
+    [BurstCompile]
+    public class TxAutotrophSproutSystem : JobComponentSystem {
+        EntityQuery m_Group;
+        
+        Entity prefabEntity;
+        protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+        
+        protected override void OnCreate() {
+            m_Group = GetEntityQuery(
+                ComponentType.ReadOnly<TxAutotrophSprout>()
+            );
+            
+            m_EndSimulationEcbSystem = World
+                .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
 
+        
+        struct Sprout : IJobForEachWithEntity< TxAutotrophSprout> {
+            public Entity prefabEntity;
+            public EntityCommandBuffer.Concurrent ecb;
+
+            public void Execute(Entity entity, int index,
+                [ReadOnly] ref TxAutotrophSprout txAutotrophSprout
+            ) {
+                var sprout = ecb.Instantiate(index,prefabEntity);
+                var pos = txAutotrophSprout.location;
+                ecb.SetComponent(index,sprout, new Translation(){Value = pos});
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            NativeArray<Entity> prefabArray = GetEntityQuery(
+                ComponentType.ReadOnly<TxAutotroph>(),
+                ComponentType.ReadOnly<Prefab>()
+            ).ToEntityArray(Allocator.TempJob);
+            if (prefabArray.Length > 0) {
+                prefabEntity = prefabArray[0];
+                var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
+                Sprout job = new Sprout() {ecb = ecb, prefabEntity = prefabEntity};
+                JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+                m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
+                prefabArray.Dispose();
+                return jobHandle;
+            }
+
+            prefabArray.Dispose();
+            return inputDeps;
+        }
+        
+        
+
+    }
+    
+
+    
+
+
+    [UpdateAfter(typeof(TxAutotrophPayMaintenance))]
+    [BurstCompile]
+    public class TxAutotrophMakeSproutSystem : JobComponentSystem {
+        EntityQuery m_Group;
+        protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+        
+        protected override void OnCreate() {
+            m_Group = GetEntityQuery(
+                ComponentType.ReadWrite<Seed>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<Translation>()
+            );
+            m_EndSimulationEcbSystem = World
+                .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        }
+
+        struct Sprout : IJobForEachWithEntity< Seed, TxAutotrophGenome,Translation> {
+            
+            public EntityCommandBuffer.Concurrent ecb;
+
+            public void Execute(Entity entity, int index,
+                 ref Seed seed,
+                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome,
+                 [ReadOnly] ref Translation translation
+            ) {
+                if (seed.Value > txAutotrophGenome.seedSize) {
+                    var e = ecb.CreateEntity(index);
+                    ecb.AddComponent<TxAutotrophSprout>(index,e,new TxAutotrophSprout(){energy = txAutotrophGenome.seedSize, location = translation.Value + new float3(100,0,100)});
+                    seed.Value -= txAutotrophGenome.seedSize;
+                }
+            }
+            
+        }
+       
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
+            Sprout job = new Sprout() { ecb=ecb };
+            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
+            return jobHandle;
+           
+        }
+    }
+
+    
 }

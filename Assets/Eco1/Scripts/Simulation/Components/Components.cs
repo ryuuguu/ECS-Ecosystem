@@ -8,7 +8,6 @@ namespace EcoSim {
     
     #region Misc
     
-    public struct TxInitialize : IComponentData{}
     
     #endregion
     
@@ -21,7 +20,6 @@ namespace EcoSim {
     
     #region Taxon Autotroph
    
-    public struct TxAutotroph : IComponentData{}
     
     public struct TxAutotrophMaintenance : IComponentData {
         public float baseValue;
@@ -61,8 +59,10 @@ namespace EcoSim {
     }
 
     
-    public struct StemObject : IComponentData{}
-    public struct LeafObject : IComponentData{}
-    public struct SeedPodObject : IComponentData{}
+    public struct TxAutotrophSprout : IComponentData {
+        public float3 location;
+        public float energy;
+    }
+
     #endregion 
 }

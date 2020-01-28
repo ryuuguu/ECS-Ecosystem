@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4212327716172314304}
   - component: {fileID: 1360014977515455957}
   - component: {fileID: 859685813180554682}
-  - component: {fileID: 1276177276}
   m_Layer: 0
   m_Name: Stem
   m_TagString: Untagged
@@ -82,18 +81,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &1276177276
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260326790864081309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 916cd471d61164fe0be1e930dc63ae6c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2044744704551786050
 GameObject:
   m_ObjectHideFlags: 0

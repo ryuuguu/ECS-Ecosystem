@@ -42,7 +42,7 @@ namespace Tests {
 
             TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager,stem, leaf,seedPod);
             m_Manager.AddComponentData(plant,new Translation(){Value = new float3(1,1,1)});
-            Enviroment.defualtLightEnergy = 10;
+            Environment.defaultLightEnergy = 10;
         }
 
         [TearDown]
@@ -62,7 +62,7 @@ namespace Tests {
         public void TxAutotrophLight_Test() {
             World.CreateSystem<TxAutotrophLight>().Update();
             var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
-            Assert.AreEqual(Enviroment.defualtLightEnergy*Enviroment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
+            Assert.AreEqual(Environment.defaultLightEnergy*Environment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
         }
         
@@ -89,6 +89,13 @@ namespace Tests {
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             Assert.AreEqual(new float3(2, 2, 2) * 3.5f, m_Manager.GetComponentData<NonUniformScale>(stem).Value,
                 "stem NonUniformScale");
+            
+            //second pass catches missing m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle)in TxAutotrophGrow
+            m_Manager.SetComponentData<EnergyStore>(plant, new EnergyStore(){Value = 7.5f});
+            World.CreateSystem<TxAutotrophGrow>().Update();
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+            Assert.AreEqual(new float3(2, 2, 2) * 5.375f, m_Manager.GetComponentData<NonUniformScale>(stem).Value,
+                "stem NonUniformScale B");
         }
 
     }
