@@ -7,7 +7,7 @@ using Unity.Entities;
 
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
 
-    public static float defaultLightEnergy = 10;
+    public static float defaultLightEnergy = 20;
 
     public static float Fitness(float val) {
 

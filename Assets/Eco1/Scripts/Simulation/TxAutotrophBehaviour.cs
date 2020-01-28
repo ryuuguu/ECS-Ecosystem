@@ -43,11 +43,13 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new  TxAutotrophMaintenance() {
                 baseValue = 1,
                 leafMultiple = 0.1f,
-                heightMultiple = 0.1f
+                heightMultiple = 0.1f,
+                ageMultiple = 0.1f
             });
             dstManager.AddComponentData(entity, new  Leaf() {Value = 1});
             dstManager.AddComponentData(entity, new  Height() {Value = 1});
             dstManager.AddComponentData(entity, new  Seed() {Value = 0});
+            dstManager.AddComponentData(entity, new  Age() {Value = 0});
             dstManager.AddComponentData(entity, new  TxAutotrophGenome() {
                 nrg2Height = 5,
                 nrg2Leaf = 5,
@@ -55,7 +57,8 @@ namespace EcoSim {
                 nrg2Storage = 5,
                 maxHeight = 5,
                 maxLeaf = 5,
-                seedSize = 5
+                seedSize = 5,
+                ageRate = 5
             });
             dstManager.AddComponentData(entity, new TxAutotrophParts() {
                 stem = stemEntity,
@@ -108,29 +111,45 @@ namespace EcoSim {
     [BurstCompile]
     public class TxAutotrophPayMaintenance : JobComponentSystem {
         EntityQuery m_Group;
+        protected BeginPresentationEntityCommandBufferSystem m_BeginPresentationEcbSystem;
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
+                ComponentType.ReadWrite<Age>(),
                 ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<TxAutotrophMaintenance>(),
                 ComponentType.ReadOnly<Leaf>(),
-                ComponentType.ReadOnly<Height>()
+                ComponentType.ReadOnly<Height>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>()
             );
+            m_BeginPresentationEcbSystem = World
+                .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        struct PayMaintenance : IJobForEach<EnergyStore, TxAutotrophMaintenance, Leaf, Height> {
-            public void Execute(ref EnergyStore energyStore,  
+        struct PayMaintenance : IJobForEachWithEntity<EnergyStore, Age, TxAutotrophMaintenance, Leaf, Height,TxAutotrophGenome> {
+            public EntityCommandBuffer.Concurrent ecb;
+            public void Execute(Entity entity,int index, 
+                ref EnergyStore energyStore, 
+                ref Age age,
                 [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
                 [ReadOnly] ref Leaf leaf,
-                [ReadOnly] ref Height height
+                [ReadOnly] ref Height height,
+                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
             ) {
-                energyStore.Value -= txAutotrophMaintenance.baseValue + 
+                age.Value++;
+                energyStore.Value -= txAutotrophMaintenance.baseValue +
                                      txAutotrophMaintenance.leafMultiple * leaf.Value +
-                    txAutotrophMaintenance.heightMultiple * height.Value;
+                                     txAutotrophMaintenance.heightMultiple * height.Value +
+                                     txAutotrophMaintenance.ageMultiple * txAutotrophGenome.ageRate +
+                                     age.Value/txAutotrophGenome.ageRate;
+                if (energyStore.Value < 0) {
+                    ecb.DestroyEntity(index,entity);
+                }
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            PayMaintenance job = new PayMaintenance() { };
+            var ecb = m_BeginPresentationEcbSystem.CreateCommandBuffer().ToConcurrent();
+            PayMaintenance job = new PayMaintenance() { ecb = ecb};
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             return jobHandle;
         }
@@ -239,6 +258,7 @@ namespace EcoSim {
                 var sprout = ecb.Instantiate(index,prefabEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
+                ecb.DestroyEntity(index,entity);
             }
         }
 
