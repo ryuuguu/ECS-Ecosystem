@@ -104,9 +104,106 @@ namespace EcoSim {
         }
     }
 
+     [UpdateAfter(typeof(TxAutotrophLight))]
+    [BurstCompile]
+    public class TxAutotrophPayMaintenance : JobComponentSystem {
+        EntityQuery m_Group;
+        protected BeginPresentationEntityCommandBufferSystem m_BeginPresentationEcbSystem;
+        protected override void OnCreate() {
+            m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
+                ComponentType.ReadWrite<Age>(),
+                ComponentType.ReadOnly<TxAutotroph>(),
+                ComponentType.ReadOnly<TxAutotrophMaintenance>(),
+                ComponentType.ReadOnly<Leaf>(),
+                ComponentType.ReadOnly<Height>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<Child>()
+            );
+            m_BeginPresentationEcbSystem = World
+                .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
+        }
+
+        struct PayMaintenance : IJobChunk {
+            public EntityCommandBuffer.Concurrent ecb;
+            public ArchetypeChunkComponentType<EnergyStore> energyStoreType;
+            public ArchetypeChunkComponentType<Age> ageType;
+            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophMaintenance> txAutotrophMaintenanceType;
+            [ReadOnly] public ArchetypeChunkComponentType<Leaf> leafType;
+            [ReadOnly] public ArchetypeChunkComponentType<Height> heightType;
+            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
+            [ReadOnly] public ArchetypeChunkBufferType<Child> childType;
+            [ReadOnly] public ArchetypeChunkEntityType entityType;
+
+            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
+                /*
+                Execute(Entity entity,int index,
+                ref EnergyStore energyStore, 
+                ref Age age,
+                [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
+                [ReadOnly] ref Leaf leaf,
+                [ReadOnly] ref Height height,
+                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
+                //,
+                //[ReadOnly] ref DynamicBuffer<Child> child
+                */ {
+                for (var i = 0; i < chunk.Count; i++) {
+                    var energyStore = chunk.GetNativeArray(energyStoreType);
+                    var age = chunk.GetNativeArray(ageType);
+                    var txAutotrophMaintenance = chunk.GetNativeArray(txAutotrophMaintenanceType);
+                    var leaf = chunk.GetNativeArray(leafType);
+                    var height = chunk.GetNativeArray(heightType);
+                    var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
+                    var entities = chunk.GetNativeArray(entityType);
+
+                    var child = chunk.GetBufferAccessor(childType);
+
+
+                    age[i] = new Age() {Value = age[i].Value+1};
+                    energyStore[i] = new EnergyStore() {
+                        Value =energyStore[i].Value - (txAutotrophMaintenance[i].baseValue +
+                               txAutotrophMaintenance[i].leafMultiple * leaf[i].Value +
+                               txAutotrophMaintenance[i].heightMultiple * height[i].Value +
+                               txAutotrophMaintenance[i].ageMultiple * txAutotrophGenome[i].ageRate +
+                                 age[i].Value / txAutotrophGenome[i].ageRate)
+                    };
+                    if (energyStore[i].Value < 0) {
+                        ecb.DestroyEntity(chunkIndex, entities[i]);
+                        ecb.DestroyEntity(chunkIndex, child[i][0].Value);
+                    }
+                }
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            var ecb = m_BeginPresentationEcbSystem.CreateCommandBuffer().ToConcurrent();
+            var energyStoreType = GetArchetypeChunkComponentType<EnergyStore>(false);
+            var ageType = GetArchetypeChunkComponentType<Age>(false);
+            var txAutotrophMaintenanceType = GetArchetypeChunkComponentType<TxAutotrophMaintenance>(true);
+            var leafType = GetArchetypeChunkComponentType<Leaf>(true);
+            var heightType = GetArchetypeChunkComponentType<Height>(true);
+            var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
+            var childType = GetArchetypeChunkBufferType<Child>(true);
+            var entityType = GetArchetypeChunkEntityType();
+
+            
+            PayMaintenance job = new PayMaintenance() {
+                energyStoreType = energyStoreType,
+                ageType = ageType,
+                txAutotrophMaintenanceType = txAutotrophMaintenanceType,
+                leafType = leafType,
+                heightType = heightType,
+                txAutotrophGenomeType = txAutotrophGenomeType,
+                childType = childType,
+                entityType = entityType,
+                ecb = ecb
+            };
+            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            return jobHandle;
+        }
+    }
+   
     
-    
-    
+    /*
     [UpdateAfter(typeof(TxAutotrophLight))]
     [BurstCompile]
     public class TxAutotrophPayMaintenance : JobComponentSystem {
@@ -125,15 +222,19 @@ namespace EcoSim {
                 .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        struct PayMaintenance : IJobForEachWithEntity<EnergyStore, Age, TxAutotrophMaintenance, Leaf, Height,TxAutotrophGenome> {
+        struct PayMaintenance : IJobForEachWithEntity< EnergyStore, Age, TxAutotrophMaintenance, Leaf, Height,
+            TxAutotrophGenome> {
             public EntityCommandBuffer.Concurrent ecb;
-            public void Execute(Entity entity,int index, 
+            public void Execute(Entity entity,int index,
                 ref EnergyStore energyStore, 
                 ref Age age,
                 [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
                 [ReadOnly] ref Leaf leaf,
                 [ReadOnly] ref Height height,
                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
+                //,
+                //[ReadOnly] ref DynamicBuffer<Child> child
+                
             ) {
                 age.Value++;
                 energyStore.Value -= txAutotrophMaintenance.baseValue +
@@ -143,6 +244,7 @@ namespace EcoSim {
                                      age.Value/txAutotrophGenome.ageRate;
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index,entity);
+                    
                 }
             }
         }
@@ -154,7 +256,7 @@ namespace EcoSim {
             return jobHandle;
         }
     }
-
+*/
     [UpdateAfter(typeof(TxAutotrophPayMaintenance))]
     [BurstCompile]
     public class TxAutotrophGrow : JobComponentSystem {
@@ -210,25 +312,6 @@ namespace EcoSim {
             return jobHandle;
         }
     }
-    
-    
-  /*  
-    [UpdateAfter(typeof(TxAutotrophMakeSproutSystem))]
-    [BurstCompile]
-    public class TxAutotrophSproutSystem : ComponentSystem {
-        
-        protected override void OnUpdate() {
-            Entities
-                .ForEach((ref TxAutotrophSprout txAutotrophSprout) => {
-                    var sprout = EntityManager.Instantiate(Environment.prefabPlantStatic);
-                    EntityManager.SetComponentData(sprout, new Translation(){Value = txAutotrophSprout.location});
-            });
-        }
-    }
-    
-    
-    
-    */
     
     [UpdateAfter(typeof(TxAutotrophMakeSproutSystem))]
     [BurstCompile]
