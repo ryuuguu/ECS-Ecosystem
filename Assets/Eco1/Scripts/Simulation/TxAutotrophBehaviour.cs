@@ -104,7 +104,8 @@ namespace EcoSim {
         }
     }
 
-     [UpdateAfter(typeof(TxAutotrophLight))]
+   
+    [UpdateAfter(typeof(TxAutotrophLight))]
     [BurstCompile]
     public class TxAutotrophPayMaintenance : JobComponentSystem {
         EntityQuery m_Group;
@@ -112,12 +113,12 @@ namespace EcoSim {
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
                 ComponentType.ReadWrite<Age>(),
-                ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<TxAutotrophMaintenance>(),
                 ComponentType.ReadOnly<Leaf>(),
                 ComponentType.ReadOnly<Height>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
-                ComponentType.ReadOnly<Child>()
+                ComponentType.ReadOnly<TxAutotrophParts>()
+                
             );
             m_BeginPresentationEcbSystem = World
                 .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
@@ -131,21 +132,11 @@ namespace EcoSim {
             [ReadOnly] public ArchetypeChunkComponentType<Leaf> leafType;
             [ReadOnly] public ArchetypeChunkComponentType<Height> heightType;
             [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
-            [ReadOnly] public ArchetypeChunkBufferType<Child> childType;
+            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophParts> txAutotrophPartsType;
             [ReadOnly] public ArchetypeChunkEntityType entityType;
 
             public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
-                /*
-                Execute(Entity entity,int index,
-                ref EnergyStore energyStore, 
-                ref Age age,
-                [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
-                [ReadOnly] ref Leaf leaf,
-                [ReadOnly] ref Height height,
-                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
-                //,
-                //[ReadOnly] ref DynamicBuffer<Child> child
-                */ {
+            {
                 for (var i = 0; i < chunk.Count; i++) {
                     var energyStore = chunk.GetNativeArray(energyStoreType);
                     var age = chunk.GetNativeArray(ageType);
@@ -153,11 +144,9 @@ namespace EcoSim {
                     var leaf = chunk.GetNativeArray(leafType);
                     var height = chunk.GetNativeArray(heightType);
                     var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
+                    var txAutotrophParts = chunk.GetNativeArray(txAutotrophPartsType);
                     var entities = chunk.GetNativeArray(entityType);
-
-                    var child = chunk.GetBufferAccessor(childType);
-
-
+                    
                     age[i] = new Age() {Value = age[i].Value+1};
                     energyStore[i] = new EnergyStore() {
                         Value =energyStore[i].Value - (txAutotrophMaintenance[i].baseValue +
@@ -168,7 +157,9 @@ namespace EcoSim {
                     };
                     if (energyStore[i].Value < 0) {
                         ecb.DestroyEntity(chunkIndex, entities[i]);
-                        ecb.DestroyEntity(chunkIndex, child[i][0].Value);
+                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].stem);
+                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].leaf);
+                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].seedPod);
                     }
                 }
             }
@@ -182,7 +173,7 @@ namespace EcoSim {
             var leafType = GetArchetypeChunkComponentType<Leaf>(true);
             var heightType = GetArchetypeChunkComponentType<Height>(true);
             var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
-            var childType = GetArchetypeChunkBufferType<Child>(true);
+            var txAutotrophPartsType = GetArchetypeChunkComponentType<TxAutotrophParts>(true);
             var entityType = GetArchetypeChunkEntityType();
 
             
@@ -193,7 +184,7 @@ namespace EcoSim {
                 leafType = leafType,
                 heightType = heightType,
                 txAutotrophGenomeType = txAutotrophGenomeType,
-                childType = childType,
+                txAutotrophPartsType = txAutotrophPartsType,
                 entityType = entityType,
                 ecb = ecb
             };
@@ -203,7 +194,9 @@ namespace EcoSim {
     }
    
     
-    /*
+    
+/*
+    // IJobForEachWithEntity can handle 7 generics type being passed :(
     [UpdateAfter(typeof(TxAutotrophLight))]
     [BurstCompile]
     public class TxAutotrophPayMaintenance : JobComponentSystem {
@@ -216,14 +209,17 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophMaintenance>(),
                 ComponentType.ReadOnly<Leaf>(),
                 ComponentType.ReadOnly<Height>(),
-                ComponentType.ReadOnly<TxAutotrophGenome>()
+                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<TxAutotrophParts>()
             );
             m_BeginPresentationEcbSystem = World
                 .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
         struct PayMaintenance : IJobForEachWithEntity< EnergyStore, Age, TxAutotrophMaintenance, Leaf, Height,
-            TxAutotrophGenome> {
+            TxAutotrophGenome
+            
+            > {
             public EntityCommandBuffer.Concurrent ecb;
             public void Execute(Entity entity,int index,
                 ref EnergyStore energyStore, 
@@ -231,9 +227,9 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
                 [ReadOnly] ref Leaf leaf,
                 [ReadOnly] ref Height height,
-                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
+                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome 
                 //,
-                //[ReadOnly] ref DynamicBuffer<Child> child
+                //[ReadOnly] ref TxAutotrophParts txAutotrophParts
                 
             ) {
                 age.Value++;
@@ -244,7 +240,9 @@ namespace EcoSim {
                                      age.Value/txAutotrophGenome.ageRate;
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index,entity);
-                    
+                    //ecb.DestroyEntity(index,txAutotrophParts.stem);
+                    //ecb.DestroyEntity(index,txAutotrophParts.leaf);
+                    //ecb.DestroyEntity(index,txAutotrophParts.seedPod);
                 }
             }
         }

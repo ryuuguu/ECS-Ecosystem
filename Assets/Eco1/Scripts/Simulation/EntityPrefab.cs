@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 
 [GenerateAuthoringComponent]
-public struct TxAutotrophPrefab : IComponentData {
+public struct EntityPrefab : IComponentData {
     
     public Entity prefab;
     
