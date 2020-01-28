@@ -62,11 +62,11 @@ namespace EcoSim {
             });
             dstManager.AddComponentData(entity, new TxAutotrophParts() {
                 stem = stemEntity,
-                stemScale = dstManager.GetComponentData<NonUniformScale>(stemEntity).Value,
+                stemScale = 1,
                 leaf = leafEntity,
-                leafScale = dstManager.GetComponentData<NonUniformScale>(leafEntity).Value,
+                leafScale = 1,
                 seedPod = seedPodEntity,
-                seedPodScale = dstManager.GetComponentData<NonUniformScale>(seedPodEntity).Value,
+                seedPodScale = 1,
             });
         }
     }
@@ -290,13 +290,13 @@ namespace EcoSim {
                 var leafGrow = energyStore.Value * txAutotrophGenome.nrg2Leaf / sum;
                 var seedGrow = energyStore.Value * txAutotrophGenome.nrg2Seed / sum;
                 height.Value += heightGrow;
-                ecb.SetComponent(index, txAutotrophParts.stem, new NonUniformScale()
+                ecb.AddComponent(index, txAutotrophParts.stem, new Scale()
                     {Value = txAutotrophParts.stemScale*height.Value});
                 leaf.Value += leafGrow;
-                ecb.SetComponent(index, txAutotrophParts.leaf, new NonUniformScale()
+                ecb.AddComponent(index, txAutotrophParts.leaf, new Scale()
                     {Value = txAutotrophParts.leafScale*leaf.Value});
                 seed.Value += seedGrow;
-                ecb.SetComponent(index, txAutotrophParts.seedPod, new NonUniformScale()
+                ecb.AddComponent(index, txAutotrophParts.seedPod, new Scale()
                     {Value = txAutotrophParts.seedPodScale*seed.Value});
                 energyStore.Value -= heightGrow + leafGrow + seedGrow;
             }

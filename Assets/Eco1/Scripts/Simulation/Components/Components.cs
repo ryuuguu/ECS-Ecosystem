@@ -35,11 +35,11 @@ namespace EcoSim {
 
     public struct TxAutotrophParts : IComponentData {
         public Entity stem;
-        public float3 stemScale;
+        public float stemScale;
         public Entity leaf;
-        public float3 leafScale;
+        public float leafScale;
         public Entity seedPod;
-        public float3 seedPodScale;
+        public float seedPodScale;
     }
     
     public struct Leaf : IComponentData {
