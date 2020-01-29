@@ -159,15 +159,14 @@ namespace Tests {
             Assert.AreEqual( 2.5f , m_Manager.GetComponentData<Seed>(plant).Value,
                 "Seed");
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
-            Assert.AreEqual(new float3(2, 2, 2) * 3.5f, m_Manager.GetComponentData<NonUniformScale>(stem).Value,
-                "stem NonUniformScale");
+            Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(stem).Value, "stem Scale");
             
             //second pass catches missing m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle)in TxAutotrophGrow
             m_Manager.SetComponentData<EnergyStore>(plant, new EnergyStore(){Value = 7.5f});
             World.CreateSystem<TxAutotrophGrow>().Update();
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
-            Assert.AreEqual(new float3(2, 2, 2) * 5.375f, m_Manager.GetComponentData<NonUniformScale>(stem).Value,
-                "stem NonUniformScale B");
+            Assert.AreEqual( 5.375f, m_Manager.GetComponentData<Scale>(stem).Value,
+                "stem Scale B");
         }
 
     }
