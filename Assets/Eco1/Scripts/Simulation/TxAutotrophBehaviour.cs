@@ -58,7 +58,7 @@ namespace EcoSim {
                 maxHeight = 5,
                 maxLeaf = 5,
                 seedSize = 5,
-                ageRate = 5
+                ageRate = 2f
             });
             dstManager.AddComponentData(entity, new TxAutotrophParts() {
                 stem = stemEntity,
@@ -366,10 +366,6 @@ namespace EcoSim {
 
     }
     
-
-    
-
-
     [UpdateAfter(typeof(TxAutotrophPayMaintenance))]
     [BurstCompile]
     public class TxAutotrophMakeSproutSystem : JobComponentSystem {
@@ -397,11 +393,18 @@ namespace EcoSim {
             ) {
                 if (seed.Value > txAutotrophGenome.seedSize) {
                     var e = ecb.CreateEntity(index);
-                    ecb.AddComponent<TxAutotrophSprout>(index,e,new TxAutotrophSprout(){energy = txAutotrophGenome.seedSize, location = translation.Value + new float3(100,0,100)});
+                    var loc = Environment.random.NextFloat2(-100, 100);
+                    var location = translation.Value + new float3(loc.x, 0, loc.y);
+                    if (location.x > Environment.bounds.x && location.x < Environment.bounds.z  &&
+                        location.y > Environment.bounds.y && location.y < Environment.bounds.w ) {
+                        ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
+                            energy = txAutotrophGenome.seedSize,
+                            location = location
+                        });
+                    }
                     seed.Value -= txAutotrophGenome.seedSize;
                 }
             }
-            
         }
        
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
@@ -410,7 +413,6 @@ namespace EcoSim {
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             return jobHandle;
-           
         }
     }
 

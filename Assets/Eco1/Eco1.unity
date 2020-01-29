@@ -305,6 +305,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32b5e8d781c3541d6b76861cb12ea946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  boundsInput:
+    x: -500
+    y: -500
+    z: 500
+    w: 500
   prefabPlant: {fileID: 2265552674871327997, guid: f36a2d7a609e14972b8de190a6b5ebd5,
     type: 3}
 --- !u!1 &1919143132
