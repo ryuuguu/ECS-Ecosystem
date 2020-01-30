@@ -101,8 +101,8 @@ public class TriggerLeafSystem : JobComponentSystem {
             shadePair.translationA = translations[shadePair.entityA].Value;
             shadePair.translationB = translations[shadePair.entityB].Value;
             var dSqr = math.distancesq(translations[shadePair.entityA].Value, translations[shadePair.entityB].Value);
-            var r0 = math.max(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
-            var r1 = math.min(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
+            var r0 =5* math.max(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
+            var r1 =5* math.min(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
             var minD = (r0-r1 )* (r0 - r1);
             var maxD = (r0+r1 )* (r0 + r1)-minD;
             var num = dSqr - minD;
@@ -112,8 +112,8 @@ public class TriggerLeafSystem : JobComponentSystem {
                 shadePair.shade = (1-((maxD - num) / maxD)) ;
             }
 
-            shadePair.leafA = r0;
-            shadePair.leafB = r1;
+            shadePair.leafA = maxD;
+            shadePair.leafB = num;
             
             // Increment the output counter in a thread safe way.
             var count = ++pCounter[0] - 1;
