@@ -11,6 +11,7 @@ using EcoSim;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEditor;
+using Math = System.Math;
 
 
 [UpdateAfter(typeof(EndFramePhysicsSystem))]
@@ -30,8 +31,6 @@ public class TriggerLeafSystem : JobComponentSystem {
         // dev & testing only
         public float3 translationA;
         public float3 translationB;
-        public float heightA;
-        public float heightB;
         public float leafA;
         public float leafB;
         
@@ -80,8 +79,9 @@ public class TriggerLeafSystem : JobComponentSystem {
         // need entity a to be lower than entity B
         //  need leaf0 to be less than leaf1 
         // distance squared between translations
-        // R0*R0-R0*R1
-        // R1*R1
+        // max  (r0+r1 )* (r0 + r1)
+        // (R0-R1)*(r0-r1)
+        // r
         
         public void Execute(TriggerEvent triggerEvent) {
             var shadePair  = new ShadePair();
@@ -100,12 +100,20 @@ public class TriggerLeafSystem : JobComponentSystem {
 
             shadePair.translationA = translations[shadePair.entityA].Value;
             shadePair.translationB = translations[shadePair.entityB].Value;
+            var dSqr = math.distancesq(translations[shadePair.entityA].Value, translations[shadePair.entityB].Value);
+            var r0 = math.max(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
+            var r1 = math.min(leafs[shadePair.entityA].Value, leafs[shadePair.entityB].Value);
+            var minD = (r0-r1 )* (r0 - r1);
+            var maxD = (r0+r1 )* (r0 + r1)-minD;
+            var num = dSqr - minD;
+            if(num <= 0 ) {
+                shadePair.shade = 1;
+            } else {
+                shadePair.shade = (1-((maxD - num) / maxD)) ;
+            }
 
-            shadePair.heightA = heights[shadePair.entityA].Value;
-            shadePair.heightB = heights[shadePair.entityB].Value;
-            
-            shadePair.leafA = leafs[shadePair.entityA].Value;
-            shadePair.leafB = leafs[shadePair.entityB].Value;
+            shadePair.leafA = r0;
+            shadePair.leafB = r1;
             
             // Increment the output counter in a thread safe way.
             var count = ++pCounter[0] - 1;
@@ -146,8 +154,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         if (m_TriggerEntitiesIndex[0] != 0) {
             Debug.Log("Count Triggers: " + UnityEngine.Time.frameCount + " : " + m_TriggerEntitiesIndex[0]);
             Debug.Log("T: " + shadePairs[0].translationA + " : " + shadePairs[0].translationB +
-                      "H: " + shadePairs[0].heightA + " : " + shadePairs[0].heightB +
-                      "L: " + shadePairs[0].leafA + " : " + shadePairs[0].leafB);
+                      " L: " + shadePairs[0].leafA + " : " + shadePairs[0].leafB + " S: "+ shadePairs[0].shade);
         }
 
         shadePairs.Dispose();
