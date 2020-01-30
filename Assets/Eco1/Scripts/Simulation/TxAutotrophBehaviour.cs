@@ -9,7 +9,7 @@ using Unity.Transforms;
 using Unity.Physics.Authoring;
 using Unity.Mathematics;
 using Unity.Burst;
-
+using Material = Unity.Physics.Material;
 
 
 namespace EcoSim {
@@ -204,7 +204,7 @@ namespace EcoSim {
                 ComponentType.ReadWrite<Leaf>(),
                 ComponentType.ReadWrite<Height>(),
                 ComponentType.ReadWrite<Seed>(),
-                //ComponentType.ReadWrite<PhysicsCollider>(),
+                ComponentType.ReadWrite<PhysicsCollider>(),
                 ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
                 ComponentType.ReadOnly<TxAutotrophParts>()
@@ -219,6 +219,7 @@ namespace EcoSim {
             public ArchetypeChunkComponentType<Leaf> leafType;
             public ArchetypeChunkComponentType<Height> heightType;
             public ArchetypeChunkComponentType<Seed> seedType;
+            public ArchetypeChunkComponentType<PhysicsCollider> physicsColliderType;
             [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
             [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophParts> txAutotrophPartsType;
             [ReadOnly] public ArchetypeChunkEntityType entityType;
@@ -230,6 +231,7 @@ namespace EcoSim {
                     var seed = chunk.GetNativeArray(seedType);
                     var leaf = chunk.GetNativeArray(leafType);
                     var height = chunk.GetNativeArray(heightType);
+                    var collider = chunk.GetNativeArray(physicsColliderType);
                     var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
                     var txAutotrophParts = chunk.GetNativeArray(txAutotrophPartsType);
                     var entities = chunk.GetNativeArray(entityType);
@@ -238,22 +240,38 @@ namespace EcoSim {
                     var heightGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Height / sum;
                     var leafGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Leaf / sum;
                     var seedGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Seed / sum;
-                    if (heightGrow != 0) {
-                        height[i] = new Height() {Value = height[i].Value + heightGrow};
-                        ecb.AddComponent(index, txAutotrophParts[i].stem, new Scale()
-                            {Value = txAutotrophParts[i].stemScale * height[i].Value});
-                    }
+                  
 
-                    if (leafGrow != 0) {
+                    //if (leafGrow != 0) {
                         leaf[i] = new Leaf() {Value = leaf[i].Value + leafGrow};
+                        
                         ecb.AddComponent(index, txAutotrophParts[i].leaf, new Scale()
                             {Value = txAutotrophParts[i].leafScale * leaf[i].Value});
+                            
+                        
+                        ecb.AddComponent(index, entities[i], new Scale()
+                            {Value = txAutotrophParts[i].leafScale * leaf[i].Value});
+                        
+                        /*
+                         var material = Material.Default;
+                        ecb.SetComponent(index,entities[i],new  PhysicsCollider {Value = Unity.Physics.SphereCollider.Create(
+                            new SphereGeometry
+                            {
+                                Center = float3.zero,
+                                Radius = 50,
+                            }, CollisionFilter.Default,material)});
+                        */
+                    //}
 
-                    }
-
+                    // if (heightGrow != 0) {
+                    height[i] = new Height() {Value = height[i].Value + heightGrow};
+                    ecb.AddComponent(index, txAutotrophParts[i].stem, new Scale()
+                        {Value = txAutotrophParts[i].stemScale * height[i].Value/leaf[i].Value});
+                    //}
+                    
                     seed[i] = new Seed() { Value = seed[i].Value + seedGrow};
                     ecb.AddComponent(index, txAutotrophParts[i].seedPod, new Scale()
-                        {Value = txAutotrophParts[i].seedPodScale * seed[i].Value});
+                        {Value = txAutotrophParts[i].seedPodScale * seed[i].Value/leaf[i].Value});
                     energyStore[i] = new EnergyStore()
                         {Value = energyStore[i].Value - (heightGrow + leafGrow + seedGrow)};
                 }
@@ -265,6 +283,8 @@ namespace EcoSim {
             var seedType = GetArchetypeChunkComponentType<Seed>(false);
             var heightType = GetArchetypeChunkComponentType<Height>(false);
             var leafType = GetArchetypeChunkComponentType<Leaf>(false);
+            var physicsColliderType = GetArchetypeChunkComponentType<PhysicsCollider>(false);
+
             var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
             var txAutotrophPartsType = GetArchetypeChunkComponentType<TxAutotrophParts>(true);
             var entityType = GetArchetypeChunkEntityType();
@@ -274,6 +294,7 @@ namespace EcoSim {
                 seedType = seedType,
                 leafType = leafType,
                 heightType = heightType,
+                physicsColliderType = physicsColliderType,
                 txAutotrophGenomeType = txAutotrophGenomeType,
                 txAutotrophPartsType = txAutotrophPartsType,
                 entityType = entityType,

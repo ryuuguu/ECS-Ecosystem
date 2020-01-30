@@ -10,6 +10,8 @@ using Unity.Collections;
 using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics;
+
 
 
 namespace Tests {
@@ -41,8 +43,15 @@ namespace Tests {
             m_Manager.AddComponentData(seedPod,new NonUniformScale(){Value = new float3(4,4,4)});
 
             TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager,stem, leaf,seedPod);
-            m_Manager.AddComponentData(plant,new Translation(){Value = new float3(1,1,1)});
+            m_Manager.AddComponentData(plant,new Translation{Value = new float3(1,1,1)});
             Environment.defaultLightEnergy = 10;
+            
+            m_Manager.AddComponentData(plant,new  PhysicsCollider {Value = Unity.Physics.SphereCollider.Create(
+                new SphereGeometry
+                {
+                    Center = float3.zero,
+                    Radius = 1
+                }, CollisionFilter.Default)});
         }
 
         [TearDown]
