@@ -251,16 +251,17 @@ namespace EcoSim {
                         
                         ecb.AddComponent(index, entities[i], new Scale()
                             {Value = txAutotrophParts[i].leafScale * leaf[i].Value});
+
+
+
+                        ecb.SetComponent(index, entities[i], new PhysicsCollider {
+                            Value = Unity.Physics.SphereCollider.Create(
+                                new SphereGeometry {
+                                    Center = float3.zero,
+                                    Radius = leaf[i].Value * 5,
+                                }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
+                        });
                         
-                        /*
-                         var material = Material.Default;
-                        ecb.SetComponent(index,entities[i],new  PhysicsCollider {Value = Unity.Physics.SphereCollider.Create(
-                            new SphereGeometry
-                            {
-                                Center = float3.zero,
-                                Radius = 50,
-                            }, CollisionFilter.Default,material)});
-                        */
                     //}
 
                     // if (heightGrow != 0) {

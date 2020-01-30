@@ -24,7 +24,10 @@ namespace EcoSim {
     #endregion
     
     #region Taxon Autotroph
-   
+
+    public struct Shade : IComponentData {
+        public float Value;
+    }
     
     public struct TxAutotrophMaintenance : IComponentData {
         public float baseValue;
