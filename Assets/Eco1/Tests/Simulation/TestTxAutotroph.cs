@@ -94,7 +94,12 @@ namespace Tests {
                 heightMultiple = 0,
                 leafMultiple = 0
                 });
-            m_Manager.SetComponentData(plant,new Age(){Value = 0});
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
             m_Manager.AddComponentData(plant, new  EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophPayMaintenance>().Update();
             // age(1) * ageRate( 1)
@@ -107,7 +112,12 @@ namespace Tests {
                 heightMultiple = 0,
                 leafMultiple = 0
             });
-            m_Manager.SetComponentData(plant,new Age(){Value = 0});
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
             m_Manager.AddComponentData(plant, new  EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophPayMaintenance>().Update();
             // age(1) * ageRate( 1) + base (1)
@@ -120,7 +130,12 @@ namespace Tests {
                 heightMultiple = 0,
                 leafMultiple = 0
             });
-            m_Manager.SetComponentData(plant,new Age(){Value = 0});
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
             m_Manager.AddComponentData(plant, new  EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophPayMaintenance>().Update();
             // age(1) * ageRate( 1) + ageMultiple (1)/age(1)
@@ -133,7 +148,12 @@ namespace Tests {
                 heightMultiple = 1,
                 leafMultiple = 0
             });
-            m_Manager.SetComponentData(plant,new Age(){Value = 0});
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
             m_Manager.AddComponentData(plant, new  EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophPayMaintenance>().Update();
             // age(1) * ageRate( 1) + heightMultiple (1) * height
@@ -146,7 +166,12 @@ namespace Tests {
                 heightMultiple = 0,
                 leafMultiple = 1
             });
-            m_Manager.SetComponentData(plant,new Age(){Value = 0});
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
             m_Manager.AddComponentData(plant, new  EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophPayMaintenance>().Update();
             // age(1) * ageRate( 1) + leafMultiple (1) * leaf
@@ -161,11 +186,11 @@ namespace Tests {
             var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
             Assert.AreEqual( 2.5f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
-            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<Height>(plant).Value,
+            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
                 "Height");
-            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<Leaf>(plant).Value,
+            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
                 "Leaf");
-            Assert.AreEqual( 2.5f , m_Manager.GetComponentData<Seed>(plant).Value,
+            Assert.AreEqual( 2.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
                 "Seed");
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(stem).Value, "stem Scale");

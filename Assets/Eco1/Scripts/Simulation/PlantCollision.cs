@@ -73,10 +73,8 @@ public class TriggerLeafSystem : JobComponentSystem {
     
     struct MakeShadePairs : ITriggerEventsJob {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
-        [ReadOnly]public ComponentDataFromEntity<Height> heights; 
-        [ReadOnly]public ComponentDataFromEntity<Leaf> leafs; 
+        [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
 
-        
         [NativeFixedLength(1)] public NativeArray<int> pCounter;
         public NativeArray<ShadePair> shadePairs;
         
@@ -92,7 +90,8 @@ public class TriggerLeafSystem : JobComponentSystem {
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
             
-            var swap = translations[eA].Value.y + heights[eA].Value > translations[eB].Value.y + heights[eB].Value;
+            var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height> translations[eB].Value.y 
+                       + txAutotrophPhenotype[eB].height;
             if (swap) {
                 shadePair.entity = eB;
                 shadePair.entityB = eA;
@@ -105,8 +104,8 @@ public class TriggerLeafSystem : JobComponentSystem {
             shadePair.translationA = translations[shadePair.entity].Value;
             shadePair.translationB = translations[shadePair.entityB].Value;
             var dSqr = math.distancesq(translations[shadePair.entity].Value, translations[shadePair.entityB].Value);
-            var r0 = math.max(leafs[shadePair.entity].Value, leafs[shadePair.entityB].Value);
-            var r1 = math.min(leafs[shadePair.entity].Value, leafs[shadePair.entityB].Value);
+            var r0 = math.max(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
+            var r1 = math.min(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
             var minD = (r0-r1 )* (r0 - r1);
             var maxD = (r0+r1 )* (r0 + r1)-minD;
             var num = dSqr - minD;
@@ -158,9 +157,8 @@ public class TriggerLeafSystem : JobComponentSystem {
         JobHandle makeShadePairsJobHandle = new MakeShadePairs
         {
             translations = GetComponentDataFromEntity<Translation>(),
-            heights = GetComponentDataFromEntity<Height>(),
-            leafs = GetComponentDataFromEntity<Leaf>(),
-
+            txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
+            
             shadePairs = shadePairs,
             pCounter = m_TriggerEntitiesIndex,
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld, getTriggerEventCountJobHandle);
