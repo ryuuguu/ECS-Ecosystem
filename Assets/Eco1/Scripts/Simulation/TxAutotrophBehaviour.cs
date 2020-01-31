@@ -341,7 +341,17 @@ namespace EcoSim {
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
                 ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
-                ecb.SetComponent(index,sprout, txAutotrophGenome);
+                ecb.SetComponent(index,sprout, new TxAutotrophGenome{
+                    nrg2Height = txAutotrophGenome.nrg2Height,
+                    nrg2Leaf = txAutotrophGenome.nrg2Leaf,
+                    nrg2Seed = txAutotrophGenome.nrg2Seed,
+                    nrg2Storage = txAutotrophGenome.nrg2Storage,
+                    maxHeight = txAutotrophGenome.maxHeight,
+                    maxLeaf = txAutotrophGenome.maxLeaf,
+                    ageRate = txAutotrophGenome.ageRate,
+                    seedSize = txAutotrophGenome.seedSize}
+                        );
+                ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
             }
         }
