@@ -211,7 +211,6 @@ namespace EcoSim {
                 ComponentType.ReadWrite<Leaf>(),
                 ComponentType.ReadWrite<Height>(),
                 ComponentType.ReadWrite<Seed>(),
-                ComponentType.ReadWrite<PhysicsCollider>(),
                 ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
                 ComponentType.ReadOnly<TxAutotrophParts>()
@@ -226,7 +225,6 @@ namespace EcoSim {
             public ArchetypeChunkComponentType<Leaf> leafType;
             public ArchetypeChunkComponentType<Height> heightType;
             public ArchetypeChunkComponentType<Seed> seedType;
-            public ArchetypeChunkComponentType<PhysicsCollider> physicsColliderType;
             [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
             [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophParts> txAutotrophPartsType;
             [ReadOnly] public ArchetypeChunkEntityType entityType;
@@ -238,18 +236,22 @@ namespace EcoSim {
                     var seed = chunk.GetNativeArray(seedType);
                     var leaf = chunk.GetNativeArray(leafType);
                     var height = chunk.GetNativeArray(heightType);
-                    var collider = chunk.GetNativeArray(physicsColliderType);
                     var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
                     var txAutotrophParts = chunk.GetNativeArray(txAutotrophPartsType);
                     var entities = chunk.GetNativeArray(entityType);
-                    var sum = txAutotrophGenome[i].nrg2Height + txAutotrophGenome[i].nrg2Leaf + txAutotrophGenome[i].nrg2Seed +
+                    var heightShare = math.select(txAutotrophGenome[i].nrg2Height, 0,
+                        height[i].Value >txAutotrophGenome[i].maxHeight);
+                    var leafShare = math.select(txAutotrophGenome[i].nrg2Leaf, 0,
+                        leaf[i].Value >txAutotrophGenome[i].maxLeaf);
+
+                    
+                    
+                    var sum = heightShare + leafShare + txAutotrophGenome[i].nrg2Seed +
                               txAutotrophGenome[i].nrg2Storage;
-                    var heightGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Height / sum;
-                    var leafGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Leaf / sum;
+                    var heightGrow = energyStore[i].Value * heightShare / sum;
+                    var leafGrow = energyStore[i].Value * leafShare / sum;
                     var seedGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Seed / sum;
                     
-                   
-
                     if (heightGrow != 0) {
                         height[i] = new Height() {Value = height[i].Value + heightGrow};
                         ecb.AddComponent(index, txAutotrophParts[i].stem, new Scale()
@@ -285,8 +287,7 @@ namespace EcoSim {
             var seedType = GetArchetypeChunkComponentType<Seed>(false);
             var heightType = GetArchetypeChunkComponentType<Height>(false);
             var leafType = GetArchetypeChunkComponentType<Leaf>(false);
-            var physicsColliderType = GetArchetypeChunkComponentType<PhysicsCollider>(false);
-
+            
             var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
             var txAutotrophPartsType = GetArchetypeChunkComponentType<TxAutotrophParts>(true);
             var entityType = GetArchetypeChunkEntityType();
@@ -296,7 +297,6 @@ namespace EcoSim {
                 seedType = seedType,
                 leafType = leafType,
                 heightType = heightType,
-                physicsColliderType = physicsColliderType,
                 txAutotrophGenomeType = txAutotrophGenomeType,
                 txAutotrophPartsType = txAutotrophPartsType,
                 entityType = entityType,
