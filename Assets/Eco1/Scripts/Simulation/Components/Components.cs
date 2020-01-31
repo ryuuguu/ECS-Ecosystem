@@ -68,6 +68,8 @@ namespace EcoSim {
         public float maxHeight; //max Height
         public float seedSize;  //Size of one seed
         public float ageRate;
+        
+        
     }
 
     

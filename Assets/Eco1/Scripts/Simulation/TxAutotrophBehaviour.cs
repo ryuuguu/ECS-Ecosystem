@@ -9,6 +9,7 @@ using Unity.Transforms;
 using Unity.Physics.Authoring;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEditor.IMGUI.Controls;
 using Material = Unity.Physics.Material;
 
 
@@ -319,25 +320,28 @@ namespace EcoSim {
         
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
-                ComponentType.ReadOnly<TxAutotrophSprout>()
+                ComponentType.ReadOnly<TxAutotrophSprout>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>()
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
         
-        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout> {
+        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout,TxAutotrophGenome> {
             public Entity prefabEntity;
             public EntityCommandBuffer.Concurrent ecb;
 
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
-                [ReadOnly] ref TxAutotrophSprout txAutotrophSprout
+                [ReadOnly] ref TxAutotrophSprout txAutotrophSprout,
+                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
             ) {
                 var sprout = ecb.Instantiate(index,prefabEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
                 ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
+                ecb.SetComponent(index,sprout, txAutotrophGenome);
                 ecb.DestroyEntity(index,entity);
             }
         }
@@ -384,6 +388,11 @@ namespace EcoSim {
             
             public EntityCommandBuffer.Concurrent ecb;
 
+            private float Mutate(float val, ref Unity.Mathematics.Random random) {
+                var mutant = math.max(1,val * random.NextFloat(0.95f, 1.05f));
+                return math.select(val, mutant,0.05f<random.NextFloat(0,1));
+            }
+            
             public void Execute(Entity entity, int index,
                  ref Seed seed,
                  ref RandomComponent randomComponent,
@@ -392,6 +401,7 @@ namespace EcoSim {
                  [ReadOnly] ref Height height
             ) {
                 while (seed.Value > txAutotrophGenome.seedSize) {
+                    seed.Value -= txAutotrophGenome.seedSize;
                     var e = ecb.CreateEntity(index);
                     var loc = randomComponent.random.NextFloat2(-20, 20)*height.Value/txAutotrophGenome.seedSize;
                     
@@ -405,7 +415,16 @@ namespace EcoSim {
                         ecb.AddComponent<RandomComponent>(index,e,new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                     }
-                    seed.Value -= txAutotrophGenome.seedSize;
+                    var newGenome = new TxAutotrophGenome();
+                    newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height,ref randomComponent.random);
+                    newGenome.nrg2Leaf =Mutate(txAutotrophGenome.nrg2Leaf,ref randomComponent.random);
+                    newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed,ref randomComponent.random);
+                    newGenome.nrg2Storage =Mutate(txAutotrophGenome.nrg2Storage,ref randomComponent.random);
+                    newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight,ref randomComponent.random);
+                    newGenome.maxLeaf =Mutate(txAutotrophGenome.maxLeaf,ref randomComponent.random);
+                    newGenome.ageRate = Mutate(txAutotrophGenome.ageRate,ref randomComponent.random);
+                    newGenome.seedSize =Mutate(txAutotrophGenome.seedSize,ref randomComponent.random);
+                    ecb.AddComponent<TxAutotrophGenome>(index,e,newGenome);
                 }
             }
         }
