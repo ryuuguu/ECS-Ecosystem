@@ -51,6 +51,13 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new  Height() {Value = 1});
             dstManager.AddComponentData(entity, new  Seed() {Value = 0});
             dstManager.AddComponentData(entity, new  Age() {Value = 0});
+            dstManager.AddComponentData(entity, new  TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  0,
+                age = 0
+            });
+            
             dstManager.AddComponentData(entity, new  Shade() {Value = 0});
             dstManager.AddComponentData(entity, new  RandomComponent() {random = new Unity.Mathematics.Random(1)});
             dstManager.AddComponentData(entity, new  TxAutotrophGenome() {
@@ -353,6 +360,8 @@ namespace EcoSim {
                         );
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
+                Debug.Log("Destroy  TxAutotrophSprout : "+ entity.Index);
+                
             }
         }
 
@@ -365,7 +374,8 @@ namespace EcoSim {
                 prefabEntity = prefabArray[0];
                 var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
                 Sprout job = new Sprout() {ecb = ecb, prefabEntity = prefabEntity};
-                JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+                JobHandle jobHandle = job.Run(m_Group);
+                    //Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
                 prefabArray.Dispose();
                 jobHandle.Complete();
