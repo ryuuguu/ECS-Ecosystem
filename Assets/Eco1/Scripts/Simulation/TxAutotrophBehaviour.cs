@@ -18,7 +18,7 @@ namespace EcoSim {
         public GameObject stem;
         public GameObject leaf;
         public GameObject seedPod;
-        
+
         public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs) {
             referencedPrefabs.Add(stem);
             referencedPrefabs.Add(leaf);
@@ -51,6 +51,7 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new  Seed() {Value = 0});
             dstManager.AddComponentData(entity, new  Age() {Value = 0});
             dstManager.AddComponentData(entity, new  Shade() {Value = 0});
+            dstManager.AddComponentData(entity, new  RandomComponent() {random = new Unity.Mathematics.Random(1)});
             dstManager.AddComponentData(entity, new  TxAutotrophGenome() {
                 nrg2Height = 5,
                 nrg2Leaf = 5,
@@ -107,6 +108,7 @@ namespace EcoSim {
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             TxGainEnergy job = new TxGainEnergy() { };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            jobHandle.Complete();
             return jobHandle;
         }
     }
@@ -193,6 +195,7 @@ namespace EcoSim {
                 ecb = ecb
             };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            jobHandle.Complete();
             return jobHandle;
         }
     }
@@ -301,6 +304,7 @@ namespace EcoSim {
             };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
+            jobHandle.Complete();
             return jobHandle;
         }
     }
@@ -314,23 +318,26 @@ namespace EcoSim {
         protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
         
         protected override void OnCreate() {
-            m_Group = GetEntityQuery(
+            m_Group = GetEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>()
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
         
-        struct Sprout : IJobForEachWithEntity< TxAutotrophSprout> {
+        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout> {
             public Entity prefabEntity;
             public EntityCommandBuffer.Concurrent ecb;
 
             public void Execute(Entity entity, int index,
+                ref RandomComponent randomComponent,
                 [ReadOnly] ref TxAutotrophSprout txAutotrophSprout
             ) {
                 var sprout = ecb.Instantiate(index,prefabEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
+                ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
+                    {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                 ecb.DestroyEntity(index,entity);
             }
         }
@@ -347,6 +354,7 @@ namespace EcoSim {
                 JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
                 prefabArray.Dispose();
+                jobHandle.Complete();
                 return jobHandle;
             }
             prefabArray.Dispose();
@@ -363,6 +371,7 @@ namespace EcoSim {
         protected override void OnCreate() {
             m_Group = GetEntityQuery(
                 ComponentType.ReadWrite<Seed>(),
+                ComponentType.ReadWrite<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
                 ComponentType.ReadOnly<Translation>(),
                 ComponentType.ReadOnly<Height>()
@@ -371,19 +380,20 @@ namespace EcoSim {
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
-        struct Sprout : IJobForEachWithEntity< Seed, TxAutotrophGenome,Translation,Height> {
+        struct Sprout : IJobForEachWithEntity< Seed,RandomComponent, TxAutotrophGenome,Translation,Height> {
             
             public EntityCommandBuffer.Concurrent ecb;
 
             public void Execute(Entity entity, int index,
                  ref Seed seed,
+                 ref RandomComponent randomComponent,
                  [ReadOnly] ref TxAutotrophGenome txAutotrophGenome,
                  [ReadOnly] ref Translation translation,
                  [ReadOnly] ref Height height
             ) {
                 if (seed.Value > txAutotrophGenome.seedSize) {
                     var e = ecb.CreateEntity(index);
-                    var loc = Environment.random.NextFloat2(-20, 20)*height.Value/txAutotrophGenome.seedSize;
+                    var loc = randomComponent.random.NextFloat2(-20, 20)*height.Value/txAutotrophGenome.seedSize;
                     
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
                     if (location.x > Environment.bounds.x && location.x < Environment.bounds.z  &&
@@ -392,6 +402,8 @@ namespace EcoSim {
                             energy = txAutotrophGenome.seedSize,
                             location = location
                         });
+                        ecb.AddComponent<RandomComponent>(index,e,new RandomComponent()
+                            {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                     }
                     seed.Value -= txAutotrophGenome.seedSize;
                 }
@@ -403,6 +415,7 @@ namespace EcoSim {
             Sprout job = new Sprout() { ecb=ecb };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
+            jobHandle.Complete();
             return jobHandle;
             
         }

@@ -167,11 +167,13 @@ public class TriggerLeafSystem : JobComponentSystem {
         makeShadePairsJobHandle.Complete();
         m_TriggerEntitiesIndex[0] = 0;
         
-        if (shadePairs.Length != 0) {
+        /*
+        if (shadePairs.Length != 0) { 
             Debug.Log("Count Triggers: " + UnityEngine.Time.frameCount + " : " +shadePairs.Length);
-            Debug.Log("T: " + shadePairs[0].translationA + " : " + shadePairs[0].translationB +
-                      " L: " + shadePairs[0].leafA + " : " + shadePairs[0].leafB + " S: "+ shadePairs[0].shade);
+           // Debug.Log("T: " + shadePairs[0].translationA + " : " + shadePairs[0].translationB +
+           //           " L: " + shadePairs[0].leafA + " : " + shadePairs[0].leafB + " S: "+ shadePairs[0].shade);
         }
+        */
         
         JobHandle addShadeJobHandle = new AddShade
         {

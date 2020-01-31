@@ -22,14 +22,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
     //public static Entity prefabPlantStatic;
     //public static Entity masterEntity;
     public static float4 bounds;
-    public static Random random;
+    // public static Random random;
 
     public float4 boundsInput;
     public GameObject prefabPlant;
 
     public void Start() {
         bounds = boundsInput;
-        random = new Random(1);
+        //random = new Random(1);
         InitialPlants();
     }
 
