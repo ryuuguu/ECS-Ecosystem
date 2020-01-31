@@ -19,8 +19,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
         return defaultLightEnergy;
     }
 
-    public static Entity prefabPlantStatic;
-    public static Entity masterEntity;
+    //public static Entity prefabPlantStatic;
+    //public static Entity masterEntity;
     public static float4 bounds;
     public static Random random;
 
@@ -37,7 +37,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
         var go = Instantiate(prefabPlant);
         go.transform.position = Vector3.zero;
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        masterEntity = em.CreateEntity();
+        //masterEntity = em.CreateEntity();
     }
 
 

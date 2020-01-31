@@ -198,7 +198,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347869643}
   m_LocalRotation: {x: 0.32895026, y: -0.0000000033010288, z: 0.000000018220291, w: 0.94434726}
-  m_LocalPosition: {x: 0, y: 43, z: -74}
+  m_LocalPosition: {x: 0, y: 90, z: -150}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -306,10 +306,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   boundsInput:
-    x: -50
-    y: -50
+    x: -100
+    y: -100
     z: 50
-    w: 50
+    w: 100
   prefabPlant: {fileID: 2265552674871327997, guid: f36a2d7a609e14972b8de190a6b5ebd5,
     type: 3}
 --- !u!1 &1919143132
@@ -622,17 +622,17 @@ PrefabInstance:
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6ee6274c1e27d47c9ba203afff635d7b, type: 3}

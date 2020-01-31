@@ -403,7 +403,6 @@ namespace EcoSim {
             Sprout job = new Sprout() { ecb=ecb };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
-            Debug.Log("Bounds: "+Environment.bounds);
             return jobHandle;
             
         }
