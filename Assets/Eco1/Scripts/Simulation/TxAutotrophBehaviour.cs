@@ -10,6 +10,7 @@ using Unity.Physics.Authoring;
 using Unity.Mathematics;
 using Unity.Burst;
 using UnityEditor.IMGUI.Controls;
+using Collider = UnityEngine.Collider;
 using Material = Unity.Physics.Material;
 
 
@@ -133,67 +134,51 @@ namespace EcoSim {
                 .GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>();
         }
 
-        struct PayMaintenance : IJobChunk {
+        struct PayMaintenance : IJobForEachWithEntity<EnergyStore,TxAutotrophPhenotype,TxAutotrophMaintenance,
+            TxAutotrophGenome, TxAutotrophParts> {
             public EntityCommandBuffer.Concurrent ecb;
-            public ArchetypeChunkComponentType<EnergyStore> energyStoreType;
-            public ArchetypeChunkComponentType<TxAutotrophPhenotype> TxAutotrophPhenotypeType;
-            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophMaintenance> txAutotrophMaintenanceType;
-            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
-            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophParts> txAutotrophPartsType;
-            [ReadOnly] public ArchetypeChunkEntityType entityType;
-
-            public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
-            {
-                for (var i = 0; i < chunk.Count; i++) {
-                    var energyStore = chunk.GetNativeArray(energyStoreType);
-                    var txAutotrophPhenotype = chunk.GetNativeArray(TxAutotrophPhenotypeType);
-                    var txAutotrophMaintenance = chunk.GetNativeArray(txAutotrophMaintenanceType);
-                    var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
-                    var txAutotrophParts = chunk.GetNativeArray(txAutotrophPartsType);
-                    var entities = chunk.GetNativeArray(entityType);
-                    
-                    txAutotrophPhenotype[i] = new TxAutotrophPhenotype() {
-                        age = txAutotrophPhenotype[i].age+1,
-                        height = txAutotrophPhenotype[i].height,
-                        leaf = txAutotrophPhenotype[i].leaf,
-                        seed = txAutotrophPhenotype[i].seed
+           
+            public void Execute(Entity entity, int index, ref EnergyStore energyStore,
+                ref TxAutotrophPhenotype txAutotrophPhenotype,
+                [ReadOnly] ref TxAutotrophMaintenance txAutotrophMaintenance,
+                [ReadOnly]ref TxAutotrophGenome txAutotrophGenome,
+                [ReadOnly]ref TxAutotrophParts txAutotrophParts) {
+             
+               
+                    txAutotrophPhenotype = new TxAutotrophPhenotype() {
+                        age = txAutotrophPhenotype.age+1,
+                        height = txAutotrophPhenotype.height,
+                        leaf = txAutotrophPhenotype.leaf,
+                        seed = txAutotrophPhenotype.seed
                     };
-                    energyStore[i] = new EnergyStore() {
-                        Value =energyStore[i].Value - (txAutotrophMaintenance[i].baseValue +
-                               txAutotrophMaintenance[i].leafMultiple * txAutotrophPhenotype[i].leaf +
-                               txAutotrophMaintenance[i].heightMultiple * txAutotrophPhenotype[i].height +
-                               txAutotrophMaintenance[i].ageMultiple * txAutotrophGenome[i].ageRate +
-                                 txAutotrophPhenotype[i].age / txAutotrophGenome[i].ageRate)
+                    energyStore = new EnergyStore() {
+                        Value =energyStore.Value - (txAutotrophMaintenance.baseValue +
+                               txAutotrophMaintenance.leafMultiple * txAutotrophPhenotype.leaf +
+                               txAutotrophMaintenance.heightMultiple * txAutotrophPhenotype.height +
+                               txAutotrophMaintenance.ageMultiple * txAutotrophGenome.ageRate +
+                                 txAutotrophPhenotype.age / txAutotrophGenome.ageRate)
                     };
-                    if (energyStore[i].Value < 0) {
-                        ecb.DestroyEntity(chunkIndex, entities[i]);
-                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].stem);
-                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].leaf);
-                        ecb.DestroyEntity(chunkIndex, txAutotrophParts[i].seedPod);
+                    if (energyStore.Value < 0) {
+                        ecb.DestroyEntity(index, entity);
+                        ecb.DestroyEntity(index, txAutotrophParts.stem);
+                        ecb.DestroyEntity(index, txAutotrophParts.leaf);
+                        ecb.DestroyEntity(index, txAutotrophParts.seedPod);
                     }
-                }
+                
             }
+
+           
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var ecb = m_BeginPresentationEcbSystem.CreateCommandBuffer().ToConcurrent();
-            var energyStoreType = GetArchetypeChunkComponentType<EnergyStore>(false);
-            var TxAutotrophPhenotypeType = GetArchetypeChunkComponentType<TxAutotrophPhenotype>(false);
-            var txAutotrophMaintenanceType = GetArchetypeChunkComponentType<TxAutotrophMaintenance>(true);
-            var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
-            var txAutotrophPartsType = GetArchetypeChunkComponentType<TxAutotrophParts>(true);
-            var entityType = GetArchetypeChunkEntityType();
+            
             
             PayMaintenance job = new PayMaintenance() {
-                energyStoreType = energyStoreType,
-                TxAutotrophPhenotypeType = TxAutotrophPhenotypeType,
-                txAutotrophMaintenanceType = txAutotrophMaintenanceType,
-                txAutotrophGenomeType = txAutotrophGenomeType,
-                txAutotrophPartsType = txAutotrophPartsType,
-                entityType = entityType,
+                
                 ecb = ecb
             };
-            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            JobHandle jobHandle = job.Run(m_Group, inputDeps);
             jobHandle.Complete();
             return jobHandle;
         }
@@ -215,89 +200,69 @@ namespace EcoSim {
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
-
-        struct Grow : IJobChunk {
-           
-            public ArchetypeChunkComponentType<EnergyStore> energyStoreType;
-            public ArchetypeChunkComponentType<TxAutotrophPhenotype> txAutotrophPhenotypeType;
-            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophGenome> txAutotrophGenomeType;
-            [ReadOnly] public ArchetypeChunkComponentType<TxAutotrophParts> txAutotrophPartsType;
-            [ReadOnly] public ArchetypeChunkEntityType entityType;
-            
+        
+        struct Grow : IJobForEachWithEntity<EnergyStore,TxAutotrophPhenotype,TxAutotrophGenome,TxAutotrophParts> {
             public EntityCommandBuffer.Concurrent ecb;
-            public void Execute(ArchetypeChunk chunk, int index, int firstEntityIndex) {
-                for (var i = 0; i < chunk.Count; i++) {
-                    var energyStore = chunk.GetNativeArray(energyStoreType);
-                    var txAutotrophPhenotype = chunk.GetNativeArray(txAutotrophPhenotypeType);
+            public void Execute(Entity entity, int index, ref EnergyStore energyStore,
+                [ReadOnly] ref TxAutotrophPhenotype txAutotrophPhenotype,
+                [ReadOnly] ref TxAutotrophGenome txAutotrophGenome,
+                [ReadOnly] ref TxAutotrophParts txAutotrophParts) {
+                
+                var heightShare = math.select(txAutotrophGenome.nrg2Height, 0,
+                    txAutotrophPhenotype.height >txAutotrophGenome.maxHeight);
+                var leafShare = math.select(txAutotrophGenome.nrg2Leaf, 0,
+                    txAutotrophPhenotype.leaf >txAutotrophGenome.maxLeaf);
 
-                    var txAutotrophGenome = chunk.GetNativeArray(txAutotrophGenomeType);
-                    var txAutotrophParts = chunk.GetNativeArray(txAutotrophPartsType);
-                    var entities = chunk.GetNativeArray(entityType);
-                    var heightShare = math.select(txAutotrophGenome[i].nrg2Height, 0,
-                        txAutotrophPhenotype[i].height >txAutotrophGenome[i].maxHeight);
-                    var leafShare = math.select(txAutotrophGenome[i].nrg2Leaf, 0,
-                        txAutotrophPhenotype[i].leaf >txAutotrophGenome[i].maxLeaf);
-
-                    
-                    
-                    var sum = heightShare + leafShare + txAutotrophGenome[i].nrg2Seed +
-                              txAutotrophGenome[i].nrg2Storage;
-                    var heightGrow = energyStore[i].Value * heightShare / sum;
-                    var leafGrow = energyStore[i].Value * leafShare / sum;
-                    var seedGrow = energyStore[i].Value * txAutotrophGenome[i].nrg2Seed / sum;
-                    
-                    txAutotrophPhenotype[i] = new TxAutotrophPhenotype() {
-                        age = txAutotrophPhenotype[i].age,
-                        height = txAutotrophPhenotype[i].height+ heightGrow,
-                        leaf = txAutotrophPhenotype[i].leaf + leafGrow,
-                        seed = txAutotrophPhenotype[i].seed + seedGrow
-                    };
-                    
-                    if (heightGrow != 0) {
-                        ecb.AddComponent(index, txAutotrophParts[i].stem, new Scale()
-                            {Value = txAutotrophParts[i].stemScale * txAutotrophPhenotype[i].height});
-                    }
-                    if (leafGrow != 0 || heightGrow != 0 ) {    
-                    ecb.AddComponent(index, txAutotrophParts[i].leaf, new Scale()
-                        {Value = txAutotrophParts[i].leafScale * txAutotrophPhenotype[i].leaf/txAutotrophPhenotype[i].height});
-                        
-                        ecb.SetComponent(index, entities[i], new PhysicsCollider {
-                            Value = Unity.Physics.SphereCollider.Create(
-                                new SphereGeometry {
-                                    Center = float3.zero,
-                                    Radius = txAutotrophPhenotype[i].leaf,
-                                }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
-                        });
-                    }
-                    
-                    
-                    ecb.AddComponent(index, txAutotrophParts[i].seedPod, new Scale()
-                        {Value = txAutotrophParts[i].seedPodScale * txAutotrophPhenotype[i].seed/txAutotrophPhenotype[i].height});
-                    energyStore[i] = new EnergyStore()
-                        {Value = energyStore[i].Value - (heightGrow + leafGrow + seedGrow)};
+                
+                
+                var sum = heightShare + leafShare + txAutotrophGenome.nrg2Seed +
+                          txAutotrophGenome.nrg2Storage;
+                var heightGrow = energyStore.Value * heightShare / sum;
+                var leafGrow = energyStore.Value * leafShare / sum;
+                var seedGrow = energyStore.Value * txAutotrophGenome.nrg2Seed / sum;
+                
+                txAutotrophPhenotype = new TxAutotrophPhenotype() {
+                    age = txAutotrophPhenotype.age,
+                    height = txAutotrophPhenotype.height+ heightGrow,
+                    leaf = txAutotrophPhenotype.leaf + leafGrow,
+                    seed = txAutotrophPhenotype.seed + seedGrow
+                };
+                
+                if (heightGrow != 0) {
+                    ecb.AddComponent(index, txAutotrophParts.stem, new Scale()
+                        {Value = txAutotrophParts.stemScale * txAutotrophPhenotype.height});
                 }
+                if (leafGrow != 0 || heightGrow != 0 ) {    
+                    ecb.AddComponent(index, txAutotrophParts.leaf, new Scale()
+                        {Value = txAutotrophParts.leafScale *
+                                 txAutotrophPhenotype.leaf/txAutotrophPhenotype.height});
+                    
+                    ecb.SetComponent(index, entity, new PhysicsCollider {
+                        Value = Unity.Physics.SphereCollider.Create(
+                            new SphereGeometry {
+                                Center = float3.zero,
+                                Radius = txAutotrophPhenotype.leaf,
+                            }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
+                    });
+                }
+                
+                ecb.AddComponent(index, txAutotrophParts.seedPod, new Scale()
+                    {Value = txAutotrophParts.seedPodScale * txAutotrophPhenotype.seed/txAutotrophPhenotype.height});
+                energyStore = new EnergyStore()
+                    {Value = energyStore.Value - (heightGrow + leafGrow + seedGrow)};
             }
         }
         
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            var energyStoreType = GetArchetypeChunkComponentType<EnergyStore>(false);
-            var txAutotrophPhenotypeType = GetArchetypeChunkComponentType<TxAutotrophPhenotype>(false);
             
-            var txAutotrophGenomeType = GetArchetypeChunkComponentType<TxAutotrophGenome>(true);
-            var txAutotrophPartsType = GetArchetypeChunkComponentType<TxAutotrophParts>(true);
-            var entityType = GetArchetypeChunkEntityType();
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
             Grow job = new Grow() {
-                energyStoreType = energyStoreType,
-                txAutotrophPhenotypeType = txAutotrophPhenotypeType,
-                txAutotrophGenomeType = txAutotrophGenomeType,
-                txAutotrophPartsType = txAutotrophPartsType,
-                entityType = entityType,
                 ecb=ecb
             };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             jobHandle.Complete();
+            
             return jobHandle;
         }
     }
@@ -345,7 +310,7 @@ namespace EcoSim {
                         );
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
-                Debug.Log("Destroy  TxAutotrophSprout : "+ entity.Index);
+                //Debug.Log("Destroy  TxAutotrophSprout : "+ entity.Index);
                 
             }
         }
@@ -405,29 +370,31 @@ namespace EcoSim {
             ) {
                 while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
                     txAutotrophPhenotype.seed -= txAutotrophGenome.seedSize;
-                    var e = ecb.CreateEntity(index);
+                    
                     var loc = randomComponent.random.NextFloat2(-20, 20)*txAutotrophPhenotype.height/txAutotrophGenome.seedSize;
                     
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
-                    if (location.x > Environment.bounds.x && location.x < Environment.bounds.z  &&
-                        location.z > Environment.bounds.y && location.z < Environment.bounds.w ) {
+                    if (location.x > Environment.bounds.x && location.x < Environment.bounds.z &&
+                        location.z > Environment.bounds.y && location.z < Environment.bounds.w) {
+                        var e = ecb.CreateEntity(index);
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophGenome.seedSize,
                             location = location
                         });
-                        ecb.AddComponent<RandomComponent>(index,e,new RandomComponent()
+                        ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
+
+                        var newGenome = new TxAutotrophGenome();
+                        newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height, ref randomComponent.random);
+                        newGenome.nrg2Leaf = Mutate(txAutotrophGenome.nrg2Leaf, ref randomComponent.random);
+                        newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed, ref randomComponent.random);
+                        newGenome.nrg2Storage = Mutate(txAutotrophGenome.nrg2Storage, ref randomComponent.random);
+                        newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight, ref randomComponent.random);
+                        newGenome.maxLeaf = Mutate(txAutotrophGenome.maxLeaf, ref randomComponent.random);
+                        newGenome.ageRate = Mutate(txAutotrophGenome.ageRate, ref randomComponent.random);
+                        newGenome.seedSize = Mutate(txAutotrophGenome.seedSize, ref randomComponent.random);
+                        ecb.AddComponent<TxAutotrophGenome>(index, e, newGenome);
                     }
-                    var newGenome = new TxAutotrophGenome();
-                    newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height,ref randomComponent.random);
-                    newGenome.nrg2Leaf =Mutate(txAutotrophGenome.nrg2Leaf,ref randomComponent.random);
-                    newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed,ref randomComponent.random);
-                    newGenome.nrg2Storage =Mutate(txAutotrophGenome.nrg2Storage,ref randomComponent.random);
-                    newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight,ref randomComponent.random);
-                    newGenome.maxLeaf =Mutate(txAutotrophGenome.maxLeaf,ref randomComponent.random);
-                    newGenome.ageRate = Mutate(txAutotrophGenome.ageRate,ref randomComponent.random);
-                    newGenome.seedSize =Mutate(txAutotrophGenome.seedSize,ref randomComponent.random);
-                    ecb.AddComponent<TxAutotrophGenome>(index,e,newGenome);
                 }
             }
         }
@@ -442,6 +409,26 @@ namespace EcoSim {
             
         }
     }
+/*
+    public class TxDebugSystem : JobComponentSystem {
+        EntityQuery m_Group;
 
-    
+        protected override void OnCreate() {
+            m_Group = GetEntityQuery(ComponentType.ReadOnly<TxAutotrophGenome>());
+        }
+
+        struct DebuJob : IJobForEachWithEntity<TxAutotrophGenome> {
+            public void Execute(Entity entity, int index,[ReadOnly] ref TxAutotrophGenome c0) {
+                Debug.Log("Debug: I:"+entity.Index + " : " + c0.nrg2Height);
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            DebuJob job = new DebuJob() {
+            };
+            JobHandle jobHandle = job.Run(m_Group, inputDeps);
+            return jobHandle;
+        }
+    }
+  */  
 }
