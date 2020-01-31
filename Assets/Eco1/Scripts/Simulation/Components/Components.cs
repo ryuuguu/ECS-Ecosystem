@@ -17,7 +17,6 @@ namespace EcoSim {
         public float Value;
     }
 
-
     public struct Age : IComponentData {
         public float Value;
     }

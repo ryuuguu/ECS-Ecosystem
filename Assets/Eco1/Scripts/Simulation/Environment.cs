@@ -8,7 +8,7 @@ using Random = Unity.Mathematics.Random;
 
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
 
-    public static float defaultLightEnergy = 15;
+    public static float defaultLightEnergy = 20;
 
     public static float Fitness(float val) {
 
