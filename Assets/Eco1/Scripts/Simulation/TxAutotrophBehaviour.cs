@@ -391,7 +391,7 @@ namespace EcoSim {
                  [ReadOnly] ref Translation translation,
                  [ReadOnly] ref Height height
             ) {
-                if (seed.Value > txAutotrophGenome.seedSize) {
+                while (seed.Value > txAutotrophGenome.seedSize) {
                     var e = ecb.CreateEntity(index);
                     var loc = randomComponent.random.NextFloat2(-20, 20)*height.Value/txAutotrophGenome.seedSize;
                     
