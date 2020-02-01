@@ -33,6 +33,9 @@ namespace EcoSim {
         public float Value;
     }
     
+    /// <summary>
+    /// these are all const so should be in const 
+    /// </summary>
     public struct TxAutotrophMaintenance : IComponentData {
         public float baseValue;
         public float leafMultiple;
@@ -55,20 +58,10 @@ namespace EcoSim {
         public float height;
         public float seed;
         public float age;
-    }
-    /*
-    public struct Leaf : IComponentData {
-        public float Value;
+        
+       
     }
     
-    public struct Height : IComponentData {
-        public float Value;
-    }
-    
-    public struct Seed : IComponentData {
-        public float Value;
-    }
-*/
     public struct TxAutotrophGenome : IComponentData {
         public float nrg2Leaf; 
         public float nrg2Seed;
@@ -78,8 +71,6 @@ namespace EcoSim {
         public float maxHeight; //max Height
         public float seedSize;  //Size of one seed
         public float ageRate;
-        
-        
     }
 
     

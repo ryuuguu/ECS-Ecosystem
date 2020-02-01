@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using EcoSim;
 using UnityEngine;
@@ -16,14 +17,26 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
     }
     
     public static float LightEnergy(float3 position) {
-        return defaultLightEnergy;
+        return defaultLightEnergy*2*(math.abs(position.x+position.z))/100;
     }
 
-    //public static Entity prefabPlantStatic;
-    //public static Entity masterEntity;
-    public static float4 bounds;
-    // public static Random random;
+    [Serializable]
+    public struct TxAutotrophMaintenance {
+        public float baseValue ;
+        public float leafMultiple ;
+        public float heightMultiple ;
+        public float ageMultiple ;
+    }
 
+    public TxAutotrophMaintenance txAutotrophMaintenance;
+    public static float4 bounds;
+    // increase shade collider and sprout distance
+    // should change density hope just a visual change.
+    
+    public static float spread = 5;
+
+
+    public Vector2 startPos = Vector2.zero;
     public float4 boundsInput;
     public GameObject prefabPlant;
 
@@ -35,7 +48,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs{
 
     public void InitialPlants() {
         var go = Instantiate(prefabPlant);
-        go.transform.position = Vector3.zero;
+        go.transform.position =new  Vector3 (startPos.x,0,startPos.y);
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         //masterEntity = em.CreateEntity();
     }

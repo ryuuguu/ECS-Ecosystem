@@ -88,7 +88,6 @@ namespace EcoSim {
         EntityQuery m_Group;
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
-                ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<Translation>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Shade>()
@@ -193,7 +192,6 @@ namespace EcoSim {
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
-                ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
                 ComponentType.ReadOnly<TxAutotrophParts>()
             );
@@ -241,7 +239,7 @@ namespace EcoSim {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
-                                Radius = txAutotrophPhenotype.leaf,
+                                Radius = txAutotrophPhenotype.leaf* Environment.spread,
                             }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
                 }
@@ -324,7 +322,7 @@ namespace EcoSim {
                 prefabEntity = prefabArray[0];
                 var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
                 Sprout job = new Sprout() {ecb = ecb, prefabEntity = prefabEntity};
-                JobHandle jobHandle = job.Run(m_Group);
+                JobHandle jobHandle = job.Schedule(m_Group,inputDeps);
                     //Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
                 prefabArray.Dispose();
@@ -370,8 +368,8 @@ namespace EcoSim {
             ) {
                 while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
                     txAutotrophPhenotype.seed -= txAutotrophGenome.seedSize;
-                    
-                    var loc = randomComponent.random.NextFloat2(-20, 20)*txAutotrophPhenotype.height/txAutotrophGenome.seedSize;
+
+                    var loc = Environment.spread * randomComponent.random.NextFloat2(-10, 10); //*txAutotrophPhenotype.height/txAutotrophGenome.seedSize;
                     
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
                     if (location.x > Environment.bounds.x && location.x < Environment.bounds.z &&
