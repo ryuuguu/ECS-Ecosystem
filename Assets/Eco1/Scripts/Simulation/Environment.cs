@@ -20,7 +20,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
     
     public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
-        return ambientLight+ variableLight*(math.abs(position.x+position.z));
+        return ambientLight+ (variableLight/200)*(math.abs(position.x+position.z));
     }
     
     public EnvironmentSettings environmentSettingsInput;

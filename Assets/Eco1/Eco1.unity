@@ -355,18 +355,18 @@ MonoBehaviour:
   environmentSettingsInput:
     txAutotrophConsts:
       baseValue: 1
-      leafMultiple: 0.3
+      leafMultiple: 0.2
       heightMultiple: 0.1
       ageMultiple: 0.1
       seedDivisor: 5
-      LeafShadeRadiusMultiplier: 8
-      LeafShadeEffectMultiplier: 2
-      seedRangeMultiplier: 15
+      LeafShadeRadiusMultiplier: 2
+      LeafShadeEffectMultiplier: 4
+      seedRangeMultiplier: 10
       mutationRate: 0.05
       mutationRange: 0.05
     environmentConsts:
-      ambientLight: 20
-      variableLight: 0.2
+      ambientLight: 80
+      variableLight: 100
       bounds:
         x: -100
         y: -100
