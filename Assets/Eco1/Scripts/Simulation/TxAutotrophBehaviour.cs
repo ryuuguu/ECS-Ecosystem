@@ -18,20 +18,15 @@ namespace EcoSim {
     
     public class TxAutotrophBehaviour : MonoBehaviour, IConvertGameObjectToEntity, IDeclareReferencedPrefabs {
         public GameObject stem;
-        //public GameObject leaf;
-        //public GameObject seedPod;
-
+        
         public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs) {
             referencedPrefabs.Add(stem);
-            //referencedPrefabs.Add(leaf);
-           // referencedPrefabs.Add(seedPod);
+            
         }
         void IConvertGameObjectToEntity.Convert(Entity entity, EntityManager dstManager,
             GameObjectConversionSystem conversionSystem) {
             
             var stemEntity = conversionSystem.GetPrimaryEntity(stem);
-            //var leafEntity = conversionSystem.GetPrimaryEntity(leaf);
-            //var seedPodEntity = conversionSystem.GetPrimaryEntity(seedPod);
             
             if (enabled) {
                 AddComponentDatas(entity, dstManager, stemEntity); //, leafEntity, seedPodEntity  );
@@ -65,9 +60,7 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new TxAutotrophParts() {
                 stem = stemEntity,
                 stemScale = 1,
-                //leaf = leafEntity,
                 leafScale = 1,
-                //seedPod = seedPodEntity,
                 seedPodScale = 1,
             });
         }
@@ -169,7 +162,7 @@ namespace EcoSim {
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index, entity);
                     //ecb.DestroyEntity(index, txAutotrophParts.stem);
-                    //ecb.DestroyEntity(index, txAutotrophParts.leaf);
+                    ecb.DestroyEntity(index, txAutotrophParts.leaf);
                     //ecb.DestroyEntity(index, txAutotrophParts.seedPod);
                 }
             }
@@ -277,6 +270,7 @@ namespace EcoSim {
         EntityQuery m_Group;
         
         Entity prefabEntity;
+        Entity prefabLeafEntity;
         protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
         
         protected override void OnCreate() {
@@ -290,6 +284,7 @@ namespace EcoSim {
         
         struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout,TxAutotrophGenome> {
             public Entity prefabEntity;
+            public Entity prefabLeafEntity;
             public EntityCommandBuffer.Concurrent ecb;
             
             public void Execute(Entity entity, int index,
@@ -300,8 +295,11 @@ namespace EcoSim {
                
                 
                 var sprout = ecb.Instantiate(index,prefabEntity);
+                var leaf = ecb.Instantiate(index,prefabLeafEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
+                ecb.SetComponent(index,leaf, new Translation(){Value = pos + new float3(0,3,0)});
+                ecb.SetComponent(index,sprout,new TxAutotrophParts{leaf =  leaf});
                 ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                 ecb.SetComponent(index,sprout, new TxAutotrophGenome{
@@ -316,24 +314,36 @@ namespace EcoSim {
                         );
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
+                
                 ecb.DestroyEntity(index,entity);
                 
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            //this could be set once per environment run
             NativeArray<Entity> prefabArray = GetEntityQuery(
                 ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<Prefab>()
             ).ToEntityArray(Allocator.TempJob);
+            NativeArray<Entity> prefabLeafArray = GetEntityQuery(
+                ComponentType.ReadOnly<TxAutotrophLeafMeshFlag>(),
+                ComponentType.ReadOnly<Prefab>()
+            ).ToEntityArray(Allocator.TempJob);
             if (prefabArray.Length > 0) {
                 prefabEntity = prefabArray[0];
+                prefabLeafEntity = prefabLeafArray[0];
                 var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
-                Sprout job = new Sprout() {ecb = ecb, prefabEntity = prefabEntity};
+                Sprout job = new Sprout() {
+                    ecb = ecb,
+                    prefabEntity = prefabEntity,
+                    prefabLeafEntity = prefabLeafEntity
+                };
                 JobHandle jobHandle = job.Schedule(m_Group,inputDeps);
                     //Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
                 prefabArray.Dispose();
+                prefabLeafArray.Dispose();
                 jobHandle.Complete();
                 return jobHandle;
             }
