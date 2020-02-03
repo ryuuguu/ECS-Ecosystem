@@ -19,12 +19,6 @@ namespace EcoSim {
     public struct  EnergyStore : IComponentData {
         public float Value;
     }
-/*
-    public struct Age : IComponentData {
-        public float Value;
-    }
-    
-    */
     #endregion
     
     #region Taxon Autotroph
@@ -33,22 +27,12 @@ namespace EcoSim {
         public float Value;
     }
     
-    /// <summary>
-    /// these are all const so should be in const 
-    /// </summary>
-    public struct TxAutotrophMaintenance : IComponentData {
-        public float baseValue;
-        public float leafMultiple;
-        public float heightMultiple;
-        public float ageMultiple;
-    }
-
     public struct TxAutotrophParts : IComponentData {
         public Entity stem;
         public float stemScale;
-        public Entity leaf;
+        //public Entity leaf;
         public float leafScale;
-        public Entity seedPod;
+        //public Entity seedPod;
         public float seedPodScale;
     }
 
@@ -58,8 +42,6 @@ namespace EcoSim {
         public float height;
         public float seed;
         public float age;
-        
-       
     }
     
     public struct TxAutotrophGenome : IComponentData {

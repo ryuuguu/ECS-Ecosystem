@@ -15,7 +15,7 @@ using Unity.Physics;
 
 
 namespace Tests {
-
+/*
 
     [TestFixture]
     //[Category("ECS Test")]
@@ -67,13 +67,14 @@ namespace Tests {
         }
 
         
-        [Test]
-        public void TxAutotrophLight_Test() {
-            World.CreateSystem<TxAutotrophLight>().Update();
-            var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
-            Assert.AreEqual(Environment.defaultLightEnergy*Environment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
-                "EnergyStore");
-        }
+       // [Test]
+       // public void TxAutotrophLight_Test() {
+       //     World.CreateSystem<TxAutotrophLight>().Update();
+       //     var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
+       //     Assert.AreEqual(Environment.defaultLightEnergy*Environment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
+       //         "EnergyStore");
+       // }
+        
         
         [Test]
         public void TxAutotrophPayMaintenance_Test() {
@@ -205,6 +206,6 @@ namespace Tests {
 
     }
 
-
+*/
 }
 
