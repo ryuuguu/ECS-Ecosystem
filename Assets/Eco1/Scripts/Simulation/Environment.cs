@@ -44,6 +44,10 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         InitialPlants();
     }
 
+    private void OnDestroy() {
+        environmentSettings.Dispose();
+    }
+
     public void InitialPlants() {
         var position =new  Vector3 (startPos.x,0,startPos.y);
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;

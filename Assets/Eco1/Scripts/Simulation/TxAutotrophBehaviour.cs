@@ -44,7 +44,7 @@ namespace EcoSim {
                 seed =  0,
                 age = 0
             });
-            
+            dstManager.AddComponentData(entity, new  Scale() {Value = 1});
             dstManager.AddComponentData(entity, new  Shade() {Value = 0});
             dstManager.AddComponentData(entity, new  RandomComponent() {random = new Unity.Mathematics.Random(1)});
             dstManager.AddComponentData(entity, new  TxAutotrophGenome() {
@@ -190,21 +190,28 @@ namespace EcoSim {
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
+                ComponentType.ReadWrite<Scale>(),
                 ComponentType.ReadOnly<TxAutotrophGenome>(),
-                ComponentType.ReadOnly<TxAutotrophParts>()
+                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<Translation>()
+                
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
         
-        struct Grow : IJobForEachWithEntity<EnergyStore,TxAutotrophPhenotype,TxAutotrophGenome,TxAutotrophParts> {
+        struct Grow : IJobForEachWithEntity<EnergyStore, TxAutotrophPhenotype, Scale,
+            TxAutotrophGenome, TxAutotrophParts, Translation> {
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
             
             public EntityCommandBuffer.Concurrent ecb;
-            public void Execute(Entity entity, int index, ref EnergyStore energyStore,
-                [ReadOnly] ref TxAutotrophPhenotype txAutotrophPhenotype,
+            public void Execute(Entity entity, int index, ref EnergyStore energyStore, 
+                ref TxAutotrophPhenotype txAutotrophPhenotype,
+                ref Scale scale,
                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome,
-                [ReadOnly] ref TxAutotrophParts txAutotrophParts) {
+                [ReadOnly] ref TxAutotrophParts txAutotrophParts,
+                [ReadOnly] ref Translation translation
+                ) {
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
                 
                 var heightShare = math.select(txAutotrophGenome.nrg2Height, 0,
@@ -224,14 +231,21 @@ namespace EcoSim {
                     seed = txAutotrophPhenotype.seed + seedGrow/environmentSettings[0].txAutotrophConsts.seedDivisor
                 };
                 
+                
                 if (heightGrow != 0) {
-                    ecb.AddComponent(index, txAutotrophParts.stem, new Scale()
-                        {Value = txAutotrophParts.stemScale * txAutotrophPhenotype.height});
+                   // ecb.SetComponent(index, txAutotrophParts.stem, new Scale()
+                   //     {Value = txAutotrophParts.stemScale * txAutotrophPhenotype.height});
+                   scale.Value = txAutotrophParts.stemScale * txAutotrophPhenotype.height;
+                    ecb.SetComponent(index, txAutotrophParts.leaf, new Translation
+                    {Value = new float3(translation.Value.x,
+                        txAutotrophParts.stemScale * txAutotrophPhenotype.height*0.8f,
+                        translation.Value.z)});
+                    
                 }
-                if (leafGrow != 0 || heightGrow != 0 ) {    
-                   // ecb.AddComponent(index, txAutotrophParts.leaf, new Scale()
-                   //     {Value = txAutotrophParts.leafScale *
-                   //              txAutotrophPhenotype.leaf/txAutotrophPhenotype.height});
+                
+                if (leafGrow != 0 ) {    
+                   ecb.AddComponent(index, txAutotrophParts.leaf, new Scale()
+                        {Value = txAutotrophParts.leafScale * txAutotrophPhenotype.leaf});
                     
                     ecb.SetComponent(index, entity, new PhysicsCollider {
                         Value = Unity.Physics.SphereCollider.Create(
@@ -242,8 +256,10 @@ namespace EcoSim {
                     });
                 }
                 
+                
                 //ecb.AddComponent(index, txAutotrophParts.seedPod, new Scale()
                 //    {Value = txAutotrophParts.seedPodScale * txAutotrophPhenotype.seed/txAutotrophPhenotype.height});
+                
                 energyStore = new EnergyStore()
                     {Value = energyStore.Value - (heightGrow + leafGrow + seedGrow)};
             }
@@ -261,6 +277,8 @@ namespace EcoSim {
             jobHandle.Complete();
             
             return jobHandle;
+            
+
         }
     }
     
@@ -292,14 +310,14 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophSprout txAutotrophSprout,
                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
             ) {
-               
-                
                 var sprout = ecb.Instantiate(index,prefabEntity);
                 var leaf = ecb.Instantiate(index,prefabLeafEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
-                ecb.SetComponent(index,leaf, new Translation(){Value = pos + new float3(0,3,0)});
+                //ecb.SetComponent(index,leaf, new Translation(){Value = pos + new float3(0,0.8f,0)});
+               // ecb.AddComponent(index,leaf, new Scale{Value = 1});
                 ecb.SetComponent(index,sprout,new TxAutotrophParts{leaf =  leaf});
+                ecb.AddComponent(index,sprout, new Scale{Value = 1});
                 ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                 ecb.SetComponent(index,sprout, new TxAutotrophGenome{
@@ -314,13 +332,14 @@ namespace EcoSim {
                         );
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
-                
                 ecb.DestroyEntity(index,entity);
                 
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
+            
+            
             //this could be set once per environment run
             NativeArray<Entity> prefabArray = GetEntityQuery(
                 ComponentType.ReadOnly<TxAutotroph>(),
@@ -348,6 +367,8 @@ namespace EcoSim {
                 return jobHandle;
             }
             prefabArray.Dispose();
+            
+            
             return inputDeps;
         }
     }
