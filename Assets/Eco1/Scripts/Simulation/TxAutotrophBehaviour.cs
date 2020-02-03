@@ -172,16 +172,12 @@ namespace EcoSim {
                     //ecb.DestroyEntity(index, txAutotrophParts.leaf);
                     //ecb.DestroyEntity(index, txAutotrophParts.seedPod);
                 }
-                
             }
-
-           
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var ecb = m_BeginPresentationEcbSystem.CreateCommandBuffer().ToConcurrent();
-            
-            
+
             PayMaintenance job = new PayMaintenance() {
                 environmentSettings =Environment.environmentSettings,
                 ecb = ecb
