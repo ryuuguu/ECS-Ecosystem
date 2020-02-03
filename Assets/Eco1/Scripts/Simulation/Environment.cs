@@ -77,6 +77,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float seedDivisor;
         public float LeafShadeRadiusMultiplier;
         public float LeafShadeEffectMultiplier;
+        public float leafScale;
+        public float stemScale;
         public float seedRangeMultiplier;
         public float mutationRate;
         public float mutationRange;

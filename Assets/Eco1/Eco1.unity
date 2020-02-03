@@ -419,6 +419,8 @@ MonoBehaviour:
       seedDivisor: 5
       LeafShadeRadiusMultiplier: 3
       LeafShadeEffectMultiplier: 4
+      leafScale: 2
+      stemScale: 1
       seedRangeMultiplier: 10
       mutationRate: 0.05
       mutationRange: 0.05
@@ -430,7 +432,7 @@ MonoBehaviour:
         y: -100
         z: 100
         w: 100
-  startPos: {x: 75, y: 75}
+  startPos: {x: 60, y: 60}
   boundsInput:
     x: -100
     y: -100
