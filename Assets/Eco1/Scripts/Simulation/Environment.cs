@@ -30,21 +30,28 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public Vector2 startPos = Vector2.zero;
     public float4 boundsInput;
     public GameObject prefabPlant;
+    public TxAutotrophGenome txAutotrophGenome;
+    
+    protected Random random;
+    
 
     public void Start() {
         var esa = new EnvironmentSettings[1] {environmentSettingsInput};
         environmentSettings = new NativeArray<EnvironmentSettings>(esa,Allocator.Persistent);
         
         bounds = boundsInput;
-        //random = new Random(1);
+        random = new Random(1);
         InitialPlants();
     }
 
     public void InitialPlants() {
-        var go = Instantiate(prefabPlant);
-        go.transform.position =new  Vector3 (startPos.x,0,startPos.y);
+        var position =new  Vector3 (startPos.x,0,startPos.y);
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        //masterEntity = em.CreateEntity();
+        var entity = em.CreateEntity();
+        em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
+        em.AddComponentData(entity, new TxAutotrophSprout {location = position,energy = 5});
+        em.AddComponentData(entity, txAutotrophGenome);
+
     }
     
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs) {

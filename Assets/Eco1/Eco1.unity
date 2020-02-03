@@ -438,6 +438,15 @@ MonoBehaviour:
     w: 100
   prefabPlant: {fileID: 679326649743714827, guid: 6731706f994ea45eeb0c6c3855f9fa5f,
     type: 3}
+  txAutotrophGenome:
+    nrg2Leaf: 5
+    nrg2Seed: 5
+    nrg2Height: 5
+    nrg2Storage: 5
+    maxLeaf: 5
+    maxHeight: 5
+    seedSize: 5
+    ageRate: 5
 --- !u!1 &1919143132
 GameObject:
   m_ObjectHideFlags: 0

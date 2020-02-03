@@ -45,6 +45,7 @@ namespace EcoSim {
         public float age;
     }
     
+    [System.Serializable]
     public struct TxAutotrophGenome : IComponentData {
         public float nrg2Leaf; 
         public float nrg2Seed;
