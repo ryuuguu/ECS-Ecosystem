@@ -94,18 +94,30 @@ namespace EcoSim {
             TxAutotrophPhenotype,
             Shade
             > {
+            
+            [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
+            
             public void Execute(ref EnergyStore energyStore,
                 [ReadOnly] ref  Translation translation,
                 [ReadOnly] ref TxAutotrophPhenotype TxAutotrophPhenotype,
                 [ReadOnly] ref Shade shade
                 ) {
-                energyStore.Value += Environment.LightEnergy(translation.Value)*Environment.Fitness(TxAutotrophPhenotype.leaf)
-                                                                               *TxAutotrophPhenotype.leaf/(TxAutotrophPhenotype.leaf+shade.Value) ;
+                energyStore.Value += 
+                    Environment.LightEnergy(translation.Value,
+                        environmentSettings[0].environmentConsts.ambientLight,
+                        environmentSettings[0].environmentConsts.variableLight
+                        )
+                    *Environment.Fitness(TxAutotrophPhenotype.leaf) 
+                    *TxAutotrophPhenotype.leaf/
+                    (TxAutotrophPhenotype.leaf+shade.Value*
+                     environmentSettings[0].txAutotrophConsts.LeafShadeEffectMultiplier) ;
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            TxGainEnergy job = new TxGainEnergy() { };
+            TxGainEnergy job = new TxGainEnergy() {
+                environmentSettings = Environment.environmentSettings
+            };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             jobHandle.Complete();
             return jobHandle;
@@ -152,7 +164,7 @@ namespace EcoSim {
                               txAutotrophConsts.leafMultiple * txAutotrophPhenotype.leaf +
                               txAutotrophConsts.heightMultiple * txAutotrophPhenotype.height +
                               txAutotrophConsts.ageMultiple * txAutotrophGenome.ageRate +
-                              txAutotrophConsts.ageMultiple / txAutotrophGenome.ageRate)
+                              txAutotrophPhenotype.age / txAutotrophGenome.ageRate)
                 };
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index, entity);
@@ -236,7 +248,7 @@ namespace EcoSim {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
-                                Radius = txAutotrophPhenotype.leaf* txAutotrophConsts.LeafShadeMultiplier,
+                                Radius = txAutotrophPhenotype.leaf* txAutotrophConsts.LeafShadeRadiusMultiplier,
                             }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
                 }
@@ -356,10 +368,6 @@ namespace EcoSim {
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
             
-            private float Mutate(float val, ref Unity.Mathematics.Random random) {
-                var mutant = math.max(1,val * random.NextFloat(0.95f, 1.05f));
-                return math.select(val, mutant,0.05f<random.NextFloat(0,1));
-            }
             
             public void Execute(Entity entity, int index,
                  ref TxAutotrophPhenotype txAutotrophPhenotype,
@@ -367,7 +375,16 @@ namespace EcoSim {
                  [ReadOnly] ref TxAutotrophGenome txAutotrophGenome,
                  [ReadOnly] ref Translation translation
             ) {
+                
+                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangel, float rangeH) {
+                    var mutant = math.max(1,val * random.NextFloat(rangel, rangeH));
+                    return math.select(val, mutant,rate<random.NextFloat(0,1));
+                }
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
+                var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
+                var mRange = environmentSettings[0].txAutotrophConsts.mutationRange;
+                var mRangeH = 1 + mRange;
+                var mRangeL = 1 - mRange;
                 var environmentConsts = environmentSettings[0].environmentConsts;
                 
                 while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
@@ -388,14 +405,22 @@ namespace EcoSim {
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
 
                         var newGenome = new TxAutotrophGenome();
-                        newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height, ref randomComponent.random);
-                        newGenome.nrg2Leaf = Mutate(txAutotrophGenome.nrg2Leaf, ref randomComponent.random);
-                        newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed, ref randomComponent.random);
-                        newGenome.nrg2Storage = Mutate(txAutotrophGenome.nrg2Storage, ref randomComponent.random);
-                        newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight, ref randomComponent.random);
-                        newGenome.maxLeaf = Mutate(txAutotrophGenome.maxLeaf, ref randomComponent.random);
-                        newGenome.ageRate = Mutate(txAutotrophGenome.ageRate, ref randomComponent.random);
-                        newGenome.seedSize = Mutate(txAutotrophGenome.seedSize, ref randomComponent.random);
+                        newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.nrg2Leaf = Mutate(txAutotrophGenome.nrg2Leaf, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.nrg2Storage = Mutate(txAutotrophGenome.nrg2Storage, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.maxLeaf = Mutate(txAutotrophGenome.maxLeaf, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.ageRate = Mutate(txAutotrophGenome.ageRate, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
+                        newGenome.seedSize = Mutate(txAutotrophGenome.seedSize, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH);
                         ecb.AddComponent<TxAutotrophGenome>(index, e, newGenome);
                     }
                 }

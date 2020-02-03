@@ -19,8 +19,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return math.select (-0.3f + 1 / (1 + 1 / val),0 ,val==0);
     }
     
-    public static float LightEnergy(float3 position) {
-        return defaultLightEnergy*2*(math.abs(position.x+position.z))/100;
+    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
+        return ambientLight+ variableLight*(math.abs(position.x+position.z));
     }
     
     public EnvironmentSettings environmentSettingsInput;
@@ -64,12 +64,17 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float heightMultiple ;
         public float ageMultiple ;
         public float seedDivisor;
-        public float LeafShadeMultiplier;
+        public float LeafShadeRadiusMultiplier;
+        public float LeafShadeEffectMultiplier;
         public float seedRangeMultiplier;
+        public float mutationRate;
+        public float mutationRange;
+        
     }
     [Serializable]
     public struct EnvironmentConsts {
-        public float baseLight;
+        public float ambientLight;
+        public float variableLight;
         public float4 bounds;
     }
     
