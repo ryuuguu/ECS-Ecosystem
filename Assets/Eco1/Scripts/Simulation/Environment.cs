@@ -89,7 +89,6 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
 
     public void InitialPlants() {
-        // y should be calculated with MapHeight
         var position =new  Vector3 (startPos.x,0,startPos.y);
         position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y  *terrainHeight[(int)position.x*256+(int)position.y];
         Debug.Log(position.y);
@@ -141,7 +140,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public void MakeTerrainSine() {
         var td = terrain.terrainData;
         environmentSettingsInput.environmentConsts.terrainHeightScale = td.heightmapScale;
-        var size = td.heightmapResolution - 1;
+        environmentSettingsInput.environmentConsts.terrainResolution = td.heightmapResolution;
+        var size = td.heightmapResolution ;
         localTerrainLight = new float[size*size];
         localTerrainHeight = new float[size*size];
         float maxlight =float.NegativeInfinity, minlight = float.PositiveInfinity ;
