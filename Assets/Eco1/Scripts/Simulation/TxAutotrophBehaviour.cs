@@ -244,7 +244,7 @@ namespace EcoSim {
                 if (leafGrow != 0 ) {    
                    ecb.SetComponent(index, txAutotrophParts.leaf, new Scale()
                    {
-                       Value = txAutotrophPhenotype.leaf* txAutotrophConsts.leafScale       
+                       Value = math.sqrt(txAutotrophPhenotype.leaf)* txAutotrophConsts.leafScale       
                    });
                     
                     ecb.SetComponent(index, entity, new PhysicsCollider {

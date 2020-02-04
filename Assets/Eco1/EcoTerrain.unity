@@ -199,7 +199,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347869643}
   m_LocalRotation: {x: 0.32895026, y: -0.0000000033010288, z: 0.000000018220291, w: 0.94434726}
-  m_LocalPosition: {x: 0, y: 200, z: -300}
+  m_LocalPosition: {x: 0, y: 100, z: -150}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -523,7 +523,7 @@ MonoBehaviour:
       ageMultiple: 0.1
       seedDivisor: 5
       LeafShadeRadiusMultiplier: 3
-      LeafShadeEffectMultiplier: 5
+      LeafShadeEffectMultiplier: 4
       leafScale: 3
       stemScale: 0.3
       seedRangeMultiplier: 15
@@ -533,10 +533,10 @@ MonoBehaviour:
       ambientLight: 70
       variableLight: 90
       bounds:
-        x: -200
-        y: -200
-        z: 200
-        w: 200
+        x: -100
+        y: -100
+        z: 100
+        w: 100
   startPos: {x: 40, y: 40}
   boundsInput:
     x: -100
@@ -907,17 +907,17 @@ PrefabInstance:
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 40
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 40
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6853156324338641939, guid: 6ee6274c1e27d47c9ba203afff635d7b,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 40
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6ee6274c1e27d47c9ba203afff635d7b, type: 3}

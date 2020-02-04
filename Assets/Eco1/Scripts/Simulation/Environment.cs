@@ -19,8 +19,12 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return math.select (-0.3f + 1 / (1 + 1 / val),0 ,val==0);
     }
     
-    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
+    public static float LightEnergy_old(float3 position, float ambientLight, float variableLight) {
         return ambientLight+ (variableLight/200)*(math.abs(position.x+position.z));
+    }
+    
+    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
+        return ambientLight+ (variableLight/2)*(math.sin((position.x+position.z)/100));
     }
     
     public EnvironmentSettings environmentSettingsInput;
