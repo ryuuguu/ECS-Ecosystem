@@ -236,7 +236,7 @@ namespace EcoSim {
                    scale.Value = txAutotrophConsts.stemScale * txAutotrophPhenotype.height;
                     ecb.SetComponent(index, txAutotrophParts.leaf, new Translation
                     {Value = new float3(translation.Value.x,
-                                 txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.8f,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.8f,
                         translation.Value.z)});
                     
                 }
@@ -396,7 +396,7 @@ namespace EcoSim {
             
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
-            
+            [ReadOnly]public NativeArray<float> terrainHeight;
             
             public void Execute(Entity entity, int index,
                  ref TxAutotrophPhenotype txAutotrophPhenotype,
@@ -405,19 +405,18 @@ namespace EcoSim {
                  [ReadOnly] ref Translation translation
             ) {
                 
-                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangel, float rangeH) {
-                    var mutant = math.max(1,val * random.NextFloat(rangel, rangeH));
+                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL, float rangeH) {
+                    var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
                     return math.select(val, mutant,rate<random.NextFloat(0,1));
                 }
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
                 var mRange = environmentSettings[0].txAutotrophConsts.mutationRange;
-                var terrainHeight = environmentSettings[0].environmentConsts.terrainHeight;
                 var bounds = environmentSettings[0].environmentConsts.bounds;
+                var heightScale = environmentSettings[0].environmentConsts.terrainHeightScale.y;
                 var mRangeH = 1 + mRange;
                 var mRangeL = 1 - mRange;
-                var environmentConsts = environmentSettings[0].environmentConsts;
-                
+
                 while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
                     txAutotrophPhenotype.seed -= txAutotrophGenome.seedSize;
 
@@ -428,8 +427,9 @@ namespace EcoSim {
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
                     if (location.x > bounds.x && location.x < bounds.z &&
                         location.z > bounds.y && location.z < bounds.w) {
-                        //var height = Environment.TerrainValue(new float3(loc.x, 0, loc.y),terrainHeight,bounds);
-                        //location.y = height;
+                        // do not know how to get height scale from terrain
+                        var height =heightScale*  Environment.TerrainValue(new float3(loc.x, 0, loc.y),terrainHeight,bounds);
+                        location.y = height;
                         var e = ecb.CreateEntity(index);
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophGenome.seedSize,
@@ -466,6 +466,7 @@ namespace EcoSim {
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
             Sprout job = new Sprout() {
                 environmentSettings = Environment.environmentSettings,
+                terrainHeight = Environment.terrainHeight,
                 ecb=ecb
             };
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
