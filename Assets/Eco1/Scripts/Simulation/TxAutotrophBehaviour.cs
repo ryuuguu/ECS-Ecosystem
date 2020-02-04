@@ -412,6 +412,8 @@ namespace EcoSim {
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
                 var mRange = environmentSettings[0].txAutotrophConsts.mutationRange;
+                var terrainHeight = environmentSettings[0].environmentConsts.terrainHeight;
+                var bounds = environmentSettings[0].environmentConsts.bounds;
                 var mRangeH = 1 + mRange;
                 var mRangeL = 1 - mRange;
                 var environmentConsts = environmentSettings[0].environmentConsts;
@@ -419,11 +421,15 @@ namespace EcoSim {
                 while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
                     txAutotrophPhenotype.seed -= txAutotrophGenome.seedSize;
 
-                    var loc =txAutotrophConsts.seedRangeMultiplier * randomComponent.random.NextFloat2(-1, 1)*txAutotrophPhenotype.height/txAutotrophGenome.seedSize;
+                    var loc =txAutotrophConsts.seedRangeMultiplier 
+                             * randomComponent.random.NextFloat2(-1, 1)
+                             *txAutotrophPhenotype.height/txAutotrophGenome.seedSize;
                     
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
-                    if (location.x > environmentConsts.bounds.x && location.x < environmentConsts.bounds.z &&
-                        location.z > environmentConsts.bounds.y && location.z < environmentConsts.bounds.w) {
+                    if (location.x > bounds.x && location.x < bounds.z &&
+                        location.z > bounds.y && location.z < bounds.w) {
+                        //var height = Environment.TerrainValue(new float3(loc.x, 0, loc.y),terrainHeight,bounds);
+                        //location.y = height;
                         var e = ecb.CreateEntity(index);
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophGenome.seedSize,
