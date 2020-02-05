@@ -35,17 +35,23 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return ambientLight+ (variableLight/200)*(math.abs(position.x+position.z));
     }
     
-    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
+    public static float LightEnergySine(float3 position, float ambientLight, float variableLight) {
         return ambientLight+ (variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
     }
 
+    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
+        return ambientLight+ (variableLight/2)*((position.x+position.z)/200);
+    }
+    
     public static float TerrainValue(float3 position, NativeArray<float> valueArray, float4 bounds) {
         var x = (int) (position.x - bounds.x); //I think this truncates towards 0
         var y = (int) (position.z - bounds.y);
-        var index = x * (int) (bounds.w - bounds.y) + y;
+        var index = x * (int) (bounds.w - bounds.y+1) + y;
+        Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
+                  + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         if (index< 0 || index >=valueArray.Length ) {
-            throw new System.ArgumentException("get index must be in "+ bounds +  " was " + index);
+            throw new System.ArgumentException("get index must be in "+ bounds +  " was " + index + ":" +position);
         }
 #endif
 
@@ -61,10 +67,10 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     public EnvironmentSettings environmentSettingsInput;
     
-    public static float4 bounds;
+    //public static float4 bounds;
     
     public Vector2 startPos = Vector2.zero;
-    public float4 boundsInput;
+   // public float4 boundsInput;
     public GameObject prefabPlant;
     public TxAutotrophGenome txAutotrophGenome;
     
@@ -76,12 +82,22 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         environmentSettings = new NativeArray<EnvironmentSettings>(esa,Allocator.Persistent);
         terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
         terrainLight = new NativeArray<float>(localTerrainLight, Allocator.Persistent);
-        bounds = boundsInput;
+        //bounds = boundsInput;
         
         random = new Random(1);
+        //DebugTerrain();
         InitialPlants();
     }
 
+
+    void DebugTerrain() {
+        var position =new  Vector3 (startPos.x,0,startPos.y);
+        
+        Debug.Log("Pos: "+position + ": " +terrain.SampleHeight(position) + " : "
+                  +environmentSettings[0].environmentConsts.terrainHeightScale.y*
+                                 TerrainValue(position,terrainHeight,environmentSettings[0].environmentConsts.bounds) );
+    }
+    
     private void OnDestroy() {
         environmentSettings.Dispose();
         terrainHeight.Dispose();
@@ -90,8 +106,10 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
 
     public void InitialPlants() {
         var position =new  Vector3 (startPos.x,0,startPos.y);
-        position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y  *terrainHeight[(int)position.x*256+(int)position.y];
-        Debug.Log(position.y);
+        position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
+                     TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
+        var sh = terrain.SampleHeight(position);
+        Debug.Log(position + " " + position.y + " : " + sh);
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var entity = em.CreateEntity();
         em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
@@ -164,6 +182,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 localTerrainHeight[i*size+j] =
                     (localTerrainLight[i*size+j] - minlight) / range;
                 forTerrainData[i,j] =  (localTerrainLight[i*size+j] - minlight) / range;
+                if (i == 256 && j == 256) {
+                    Debug.Log("MakeTerrainSin: "+ i+":"+j + " size: "+size + " : " + forTerrainData[i,j] + " index:"+ (i*size+j) );
+                }
             }
         }
         td.SetHeights(0,0, forTerrainData);

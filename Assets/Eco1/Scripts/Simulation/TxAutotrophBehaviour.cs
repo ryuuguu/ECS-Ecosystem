@@ -428,7 +428,7 @@ namespace EcoSim {
                     if (location.x > bounds.x && location.x < bounds.z &&
                         location.z > bounds.y && location.z < bounds.w) {
                         // do not know how to get height scale from terrain
-                        var height =heightScale*  Environment.TerrainValue(new float3(loc.x, 0, loc.y),terrainHeight,bounds);
+                        var height =heightScale*  Environment.TerrainValue(location,terrainHeight,bounds);
                         location.y = height;
                         var e = ecb.CreateEntity(index);
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
@@ -469,7 +469,7 @@ namespace EcoSim {
                 terrainHeight = Environment.terrainHeight,
                 ecb=ecb
             };
-            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
+            JobHandle jobHandle = job.Run(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             jobHandle.Complete();
             return jobHandle;
