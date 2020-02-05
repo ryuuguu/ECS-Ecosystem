@@ -47,8 +47,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         var x = (int) (position.x - bounds.x); //I think this truncates towards 0
         var y = (int) (position.z - bounds.y);
         var index = x * (int) (bounds.w - bounds.y+1) + y;
-        Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
-                  + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
+ //       Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
+ //                 + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         if (index< 0 || index >=valueArray.Length ) {
             throw new System.ArgumentException("get index must be in "+ bounds +  " was " + index + ":" +position);
@@ -57,13 +57,6 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
 
     return  valueArray[index];
 }
-    
-    public static float MapHeight(float3 position, float ambientLight, float variableLight,
-        float mapDecrement, float mapRange, float heightScale) {
-        var light = LightEnergy(position, ambientLight, variableLight);
-        var height = ((light -mapDecrement) /mapRange) * heightScale;
-        return  height;
-    }
     
     public EnvironmentSettings environmentSettingsInput;
     
@@ -166,7 +159,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         
         for (int i = 0; i< size; i++){
             for (int j = 0; j < size; j++) {
-                var lightEnergy = Environment.LightEnergy(new float3(i, 0, j),
+                var lightEnergy = Environment.LightEnergySine(new float3(i, 0, j),
                     environmentSettingsInput.environmentConsts.ambientLight,
                     environmentSettingsInput.environmentConsts.variableLight
                 );

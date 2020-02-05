@@ -94,7 +94,7 @@ namespace EcoSim {
                 [ReadOnly] ref Shade shade
                 ) {
                 energyStore.Value += 
-                    Environment.LightEnergy(translation.Value,
+                    Environment.LightEnergySine(translation.Value,
                         environmentSettings[0].environmentConsts.ambientLight,
                         environmentSettings[0].environmentConsts.variableLight
                         )
@@ -173,7 +173,7 @@ namespace EcoSim {
                 environmentSettings =Environment.environmentSettings,
                 ecb = ecb
             };
-            JobHandle jobHandle = job.Run(m_Group, inputDeps);
+            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             jobHandle.Complete();
             return jobHandle;
         }
@@ -251,7 +251,7 @@ namespace EcoSim {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
-                                Radius = txAutotrophPhenotype.leaf* txAutotrophConsts.LeafShadeRadiusMultiplier,
+                                Radius = math.max(0.01f,txAutotrophPhenotype.leaf* txAutotrophConsts.LeafShadeRadiusMultiplier),
                             }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
                 }
@@ -469,7 +469,7 @@ namespace EcoSim {
                 terrainHeight = Environment.terrainHeight,
                 ecb=ecb
             };
-            JobHandle jobHandle = job.Run(m_Group, inputDeps);
+            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             jobHandle.Complete();
             return jobHandle;
