@@ -116,7 +116,7 @@ namespace Tests {
                 nrg2Leaf = 1,
                 nrg2Seed = 1,
                 nrg2Storage = 1,
-                seedSize = 4,
+                seedSize = 4, // not tested yet
                 maxHeight = 5,
                 maxLeaf = 5.5f
                 
@@ -159,13 +159,15 @@ namespace Tests {
             m_Manager.SetComponentData(plant, new EnergyStore(){Value = 10f});
             World.CreateSystem<TxAutotrophGrow>().Update();
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
-            Assert.AreEqual( 6f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
+            Assert.AreEqual( 4f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
+                "EnergyStore");
+            Assert.AreEqual( 5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
                 "Height Max");
-            Assert.AreEqual( 6f, m_Manager.GetComponentData<Scale>(plant).Value,
+            Assert.AreEqual( 5f, m_Manager.GetComponentData<Scale>(plant).Value,
                 "stem Scale Max");
             Assert.AreEqual( 5.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
                 "leaf Max");
-                Assert.AreEqual( 1f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
+                Assert.AreEqual( 2.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
                 "seed size ");
         }
     

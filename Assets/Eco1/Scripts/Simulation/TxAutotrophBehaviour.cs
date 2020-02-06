@@ -211,15 +211,17 @@ namespace EcoSim {
                 [ReadOnly] ref Translation translation
                 ) {
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
-                
-                var heightShare = math.select(txAutotrophGenome.nrg2Height, 0,
-                    txAutotrophPhenotype.height >txAutotrophGenome.maxHeight);
-                var leafShare = math.select(txAutotrophGenome.nrg2Leaf, 0,
-                    txAutotrophPhenotype.leaf >txAutotrophGenome.maxLeaf);
-                var sum = heightShare + leafShare + txAutotrophGenome.nrg2Seed +
+                var sum = txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf + txAutotrophGenome.nrg2Seed +
                           txAutotrophGenome.nrg2Storage;
-                var heightGrow = energyStore.Value * heightShare / sum;
-                var leafGrow = energyStore.Value * leafShare / sum;
+                
+                
+                var heightEnergy = energyStore.Value * txAutotrophGenome.nrg2Height/sum;
+                var heightGrow  = math.min(heightEnergy, 
+                    txAutotrophGenome.maxHeight- txAutotrophPhenotype.height );
+                
+                var leafEnergy =  energyStore.Value * txAutotrophGenome.nrg2Leaf/sum;
+                var leafGrow = math.min(leafEnergy,
+                    txAutotrophGenome.maxLeaf - txAutotrophPhenotype.leaf );
                 var seedGrow = energyStore.Value * txAutotrophGenome.nrg2Seed / sum;
                 
                 txAutotrophPhenotype = new TxAutotrophPhenotype() {
