@@ -417,7 +417,7 @@ namespace EcoSim {
                 var mRangeH = 1 + mRange;
                 var mRangeL = 1 - mRange;
 
-                while (txAutotrophPhenotype.seed > txAutotrophGenome.seedSize) {
+                while (txAutotrophPhenotype.seed >= txAutotrophGenome.seedSize) {
                     txAutotrophPhenotype.seed -= txAutotrophGenome.seedSize;
 
                     var loc =txAutotrophConsts.seedRangeMultiplier 

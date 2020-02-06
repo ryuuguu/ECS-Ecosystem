@@ -179,8 +179,8 @@ namespace Tests {
        //     Assert.AreEqual(Environment.defaultLightEnergy*Environment.Fitness(1), m_Manager.GetComponentData<EnergyStore>(plant).Value,
        //         "EnergyStore");
        // }
-        
-        
+      
+
         [Test]
         public void TxAutotrophPayMaintenance_Test() {
             
@@ -314,7 +314,93 @@ namespace Tests {
             stemDead.Dispose();
         }
         
-        
+        [Test]
+        public void TxAutotrophMakeSprout_Test() {
+            
+            var th = new float[513*513];
+            
+            Environment.terrainHeight = new NativeArray<float>(th,Allocator.Persistent);
+            
+            var es = Environment.environmentSettings[0];
+            es.txAutotrophConsts.seedDivisor = 2;
+            es.txAutotrophConsts.stemScale = 1;
+            es.txAutotrophConsts.baseValue= 0;
+            es.txAutotrophConsts.ageMultiple = 0;
+            es.txAutotrophConsts.heightMultiple= 0;
+            es.txAutotrophConsts.leafMultiple = 0;
+            es.environmentConsts.bounds = new float4(-256,-256,256,256);
+            es.environmentConsts.terrainResolution = 513;
+            Environment.environmentSettings[0] = es;
+            
+            
+            World.CreateSystem<TxAutotrophSproutSystem>().Update(); 
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+
+            var stems = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
+                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<EnergyStore>(),
+                ComponentType.ReadOnly<TxAutotrophPhenotype>(),
+                ComponentType.ReadOnly<Scale>(),
+                ComponentType.ReadOnly<Translation>()
+                
+            ).ToEntityArray(Allocator.TempJob);
+
+            var plant = stems[0];
+            stems.Dispose();
+            
+            //check making one sprout 
+            
+            m_Manager.SetComponentData(plant,new TxAutotrophGenome() {
+                ageRate = 1,
+                maxHeight = 1,
+                maxLeaf = 1,
+                nrg2Height = 1,
+                nrg2Leaf = 1,
+                nrg2Seed = 1,
+                nrg2Storage = 1,
+                seedSize = 1
+            });
+            //age
+           
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  1.5f,
+                age = 0
+            });
+           
+            World.CreateSystem<TxAutotrophMakeSproutSystem>().Update();
+            Assert.AreEqual( 0.5f, m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
+                "single Seed energy");
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+             
+            
+            var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophSprout>()
+            ).ToEntityArray(Allocator.TempJob);
+            
+            Assert.AreEqual(1,sprouts.Length," single sprout");
+            sprouts.Dispose();
+            
+            //check making more sprouts 
+            m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
+                leaf = 1,
+                height = 1,
+                seed =  3f,
+                age = 0
+            });
+
+            World.CreateSystem<TxAutotrophMakeSproutSystem>().Update();
+            Assert.AreEqual( 0f, m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
+                "multi Seed energy");
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+            
+            var sprouts3 = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophSprout>()
+            ).ToEntityArray(Allocator.TempJob);
+            
+            Assert.AreEqual(4,sprouts3.Length," triple + single sprout");
+            sprouts3.Dispose();
+            Environment.terrainHeight.Dispose();
+        }
         
 
 
