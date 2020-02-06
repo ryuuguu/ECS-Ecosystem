@@ -15,58 +15,84 @@ using Unity.Physics;
 
 
 namespace Tests {
-/*
+
 
     [TestFixture]
     //[Category("ECS Test")]
     public class TxAutotrophTest : ECSTestsFixture {
-        protected Entity plant;
-        protected Entity stem;
-        protected Entity leaf;
-        protected Entity seedPod;
+        protected Entity sprout;
         
+
         [SetUp]
         public override void Setup() {
             base.Setup();
-            plant = m_Manager.CreateEntity();
             
-            stem = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(stem,new Translation(){Value = new float3(2,1,1)});
-            m_Manager.AddComponentData(stem,new NonUniformScale(){Value = new float3(2,2,2)});
+            // start with 
+            var leaf = m_Manager.CreateEntity();
+            m_Manager.AddComponent<Prefab>(leaf); 
+            m_Manager.AddComponentData(leaf, new Translation{ Value = float3.zero});
+            m_Manager.AddComponent<TxAutotrophLeafMeshFlag>(leaf);
+             
+            
+            //prefab plant
+            var stem = m_Manager.CreateEntity();
+            m_Manager.AddComponent<Prefab>(stem); 
+            m_Manager.AddComponent<TxAutotroph>(stem);
+            m_Manager.AddComponentData(stem, new Translation{ Value = float3.zero});
+            m_Manager.AddComponentData(stem, new Shade{ Value = 0});
+            m_Manager.AddComponentData(stem, new EnergyStore{ Value = 0});
+            m_Manager.AddComponentData(stem, new TxAutotrophParts {
+            });
 
-            leaf = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(leaf,new Translation(){Value = new float3(3,1,1)});
-            m_Manager.AddComponentData(leaf,new NonUniformScale(){Value = new float3(3,3,3)});
             
-            seedPod =  m_Manager.CreateEntity();
-            m_Manager.AddComponentData(seedPod,new Translation(){Value = new float3(4,1,1)});
-            m_Manager.AddComponentData(seedPod,new NonUniformScale(){Value = new float3(4,4,4)});
+            //physics collider
+            
+            m_Manager.AddComponentData(stem, new  TxAutotrophGenome {
+            });
+            m_Manager.AddComponentData(stem, new  TxAutotrophPhenotype {
+                  
+            });
+            
+            
+            sprout = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
+            m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
+            m_Manager.AddComponentData(sprout, new  TxAutotrophGenome {
+                  
+            });
+            
 
-            TxAutotrophBehaviour.AddComponentDatas(plant,m_Manager,stem, leaf,seedPod);
-            m_Manager.AddComponentData(plant,new Translation{Value = new float3(1,1,1)});
-            Environment.defaultLightEnergy = 10;
-            
-            m_Manager.AddComponentData(plant,new  PhysicsCollider {Value = Unity.Physics.SphereCollider.Create(
-                new SphereGeometry
-                {
-                    Center = float3.zero,
-                    Radius = 1
-                }, CollisionFilter.Default)});
         }
 
         [TearDown]
         public override void TearDown() {
             base.TearDown();
         }
-        
+
         [Test]
-        public void Tx_AddComponentDatas_Test() {
-            Assert.AreEqual(stem, m_Manager.GetComponentData<TxAutotrophParts>(plant).stem,
-                "stem Entity");
+        public void Tx_Sprout_Test() {
+            World.CreateSystem<TxAutotrophSproutSystem>().Update(); 
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             
+            var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
+                ComponentType.ReadOnly<TxAutotrophSprout>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>()
+            ).ToEntityArray(Allocator.TempJob);
+            Assert.AreEqual(0,sprouts.Length,"Sprouts count");
+            sprouts.Dispose();
+            
+            //entity query to count TxAutotroph == 1
+            //entity query to count TxAutotrophLeafMeshFlag == 1
+            
+
+            //check stem part == leaf exist and has TxAutotrophLeafMeshFlag
+
+
         }
 
-        
+
+    /*
+  
        // [Test]
        // public void TxAutotrophLight_Test() {
        //     World.CreateSystem<TxAutotrophLight>().Update();
@@ -204,8 +230,9 @@ namespace Tests {
                 "stem Scale B");
         }
 
+*/
     }
 
-*/
+
 }
 

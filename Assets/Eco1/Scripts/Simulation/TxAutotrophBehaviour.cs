@@ -277,8 +277,6 @@ namespace EcoSim {
             jobHandle.Complete();
             
             return jobHandle;
-            
-
         }
     }
     
