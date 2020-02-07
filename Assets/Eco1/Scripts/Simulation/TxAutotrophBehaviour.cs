@@ -333,10 +333,13 @@ namespace EcoSim {
                     ageRate = txAutotrophGenome.ageRate,
                     seedSize = txAutotrophGenome.seedSize}
                         );
+                var red = (txAutotrophGenome.maxHeight-1) / (txAutotrophGenome.maxHeight + txAutotrophGenome.maxLeaf-2);
+                var green = (txAutotrophGenome.nrg2Height-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
+                var blue = (txAutotrophGenome.ageRate-1) / 7;
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
-                ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(0,0f,1f,1)});
+                ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
 
             }
         }
