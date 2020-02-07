@@ -108,6 +108,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
         em.AddComponentData(entity, new TxAutotrophSprout {location = position,energy = 5});
         em.AddComponentData(entity, txAutotrophGenome);
+        em.AddComponentData(entity, new  TxAutotrophColorGenome());
 
     }
     
