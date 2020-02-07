@@ -161,8 +161,13 @@ namespace EcoSim {
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index, entity);
                     //ecb.DestroyEntity(index, txAutotrophParts.stem);
-                    ecb.DestroyEntity(index, txAutotrophParts.leaf);
+                    //ecb.DestroyEntity(index, txAutotrophParts.leaf);
                     ecb.DestroyEntity(index, txAutotrophParts.petal0);
+                    ecb.DestroyEntity(index, txAutotrophParts.petal1);
+                    ecb.DestroyEntity(index, txAutotrophParts.petal2);
+                    ecb.DestroyEntity(index, txAutotrophParts.petal3);
+                    ecb.DestroyEntity(index, txAutotrophParts.petal4);
+                    ecb.DestroyEntity(index, txAutotrophParts.petal5);
                     //ecb.DestroyEntity(index, txAutotrophParts.seedPod);
                 }
             }
@@ -238,20 +243,59 @@ namespace EcoSim {
                    // ecb.SetComponent(index, txAutotrophParts.stem, new Scale()
                    //     {Value = txAutotrophParts.stemScale * txAutotrophPhenotype.height});
                    scale.Value = txAutotrophConsts.stemScale * txAutotrophPhenotype.height;
-                    ecb.SetComponent(index, txAutotrophParts.leaf, new Translation
-                    {Value = new float3(translation.Value.x,
-                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.8f,
-                        translation.Value.z)});
+                   
+                   // ecb.SetComponent(index, txAutotrophParts.leaf, new Translation
+                  //  {Value = new float3(translation.Value.x,
+                  //      translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.8f,
+                  //      translation.Value.z)});
+                  
                     ecb.SetComponent(index, txAutotrophParts.petal0, new Translation
                     {Value = new float3(translation.Value.x,
                         translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
                         translation.Value.z)});
+                    
+                    ecb.SetComponent(index, txAutotrophParts.petal1, new Translation
+                    {Value = new float3(translation.Value.x,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
+                        translation.Value.z)});
+                   
+                    
+                    ecb.SetComponent(index, txAutotrophParts.petal2, new Translation
+                    {Value = new float3(translation.Value.x,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
+                        translation.Value.z)});
+                    
+
+                    ecb.SetComponent(index, txAutotrophParts.petal3, new Translation
+                    {Value = new float3(translation.Value.x,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
+                        translation.Value.z)});
+                   
+
+                    ecb.SetComponent(index, txAutotrophParts.petal4, new Translation
+                    {Value = new float3(translation.Value.x,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
+                        translation.Value.z)});
+                   
+
+                    ecb.SetComponent(index, txAutotrophParts.petal5, new Translation
+                    {Value = new float3(translation.Value.x,
+                        translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
+                        translation.Value.z)});
+                    
+                    
                 }
                 
                 if (leafGrow != 0 ) {
                     var lScale = math.sqrt(txAutotrophPhenotype.leaf) * txAutotrophConsts.leafScale;
-                    ecb.SetComponent(index, txAutotrophParts.leaf, new Scale{Value = lScale });
+                    //ecb.SetComponent(index, txAutotrophParts.leaf, new Scale{Value = lScale });
+                    
                     ecb.SetComponent(index, txAutotrophParts.petal0, new Scale{Value = lScale });
+                    ecb.SetComponent(index, txAutotrophParts.petal1, new Scale{Value = lScale });
+                    ecb.SetComponent(index, txAutotrophParts.petal2, new Scale{Value = lScale });
+                    ecb.SetComponent(index, txAutotrophParts.petal3, new Scale{Value = lScale });
+                    ecb.SetComponent(index, txAutotrophParts.petal4, new Scale{Value = lScale });
+                    ecb.SetComponent(index, txAutotrophParts.petal5, new Scale{Value = lScale });
 
                     ecb.SetComponent(index, entity, new PhysicsCollider {
                         Value = Unity.Physics.SphereCollider.Create(
@@ -292,7 +336,7 @@ namespace EcoSim {
         EntityQuery m_Group;
         
         Entity prefabEntity;
-        Entity prefabLeafEntity;
+        //Entity prefabLeafEntity;
         Entity prefabPetalEntity;
         protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
         
@@ -307,7 +351,7 @@ namespace EcoSim {
         
         struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout,TxAutotrophGenome> {
             public Entity prefabEntity;
-            public Entity prefabLeafEntity;
+            //public Entity prefabLeafEntity;
             public Entity prefabPetalEntity;
             public EntityCommandBuffer.Concurrent ecb;
             
@@ -317,20 +361,49 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophGenome txAutotrophGenome
             ) {
                 var sprout = ecb.Instantiate(index,prefabEntity);
-                var leaf = ecb.Instantiate(index,prefabLeafEntity);
+                //var leaf = ecb.Instantiate(index,prefabLeafEntity);
                 var petal0 = ecb.Instantiate(index,prefabPetalEntity);
+                var petal1 = ecb.Instantiate(index,prefabPetalEntity);
+                var petal2 = ecb.Instantiate(index,prefabPetalEntity);
+                var petal3 = ecb.Instantiate(index,prefabPetalEntity);
+                var petal4 = ecb.Instantiate(index,prefabPetalEntity);
+                var petal5 = ecb.Instantiate(index,prefabPetalEntity);
                 var pos = txAutotrophSprout.location;
                 ecb.SetComponent(index,sprout, new Translation(){Value = pos});
-                ecb.SetComponent(index,leaf, new Translation(){Value = pos + new float3(0,0.8f,0)});
-                ecb.AddComponent(index,leaf, new Scale{Value = 1});
+                //ecb.SetComponent(index,leaf, new Translation(){Value = pos + new float3(0,0.8f,0)});
+                //ecb.AddComponent(index,leaf, new Scale{Value = 1});
                 
                 ecb.SetComponent(index,petal0, new Translation(){Value = pos + new float3(0,0.9f,0)});
                 ecb.AddComponent(index,petal0, new Scale{Value = 1});
                 
+                ecb.SetComponent(index,petal1, new Translation(){Value = pos + new float3(0,0.9f,0)});
+                ecb.AddComponent(index,petal1, new Scale{Value = 1});
+                ecb.SetComponent(index, petal1, new Rotation {Value = quaternion.Euler(0,math.PI/3,0)});
+                
+                ecb.SetComponent(index,petal2, new Translation(){Value = pos + new float3(0,0.9f,0)});
+                ecb.AddComponent(index,petal2, new Scale{Value = 1});
+                ecb.SetComponent(index, petal2, new Rotation {Value = quaternion.Euler(0,2*math.PI/3,0)});
+                
+                ecb.SetComponent(index,petal3, new Translation(){Value = pos + new float3(0,0.9f,0)});
+                ecb.AddComponent(index,petal3, new Scale{Value = 1});
+                ecb.SetComponent(index, petal3, new Rotation {Value = quaternion.Euler(0,3*math.PI/3,0)});
+                
+                ecb.SetComponent(index,petal4, new Translation(){Value = pos + new float3(0,0.9f,0)});
+                ecb.AddComponent(index,petal4, new Scale{Value = 1});
+                ecb.SetComponent(index, petal4, new Rotation {Value = quaternion.Euler(0,4*math.PI/3,0)});
+                
+                ecb.SetComponent(index,petal5, new Translation(){Value = pos + new float3(0,0.9f,0)});
+                ecb.AddComponent(index,petal5, new Scale{Value = 1});
+                ecb.SetComponent(index, petal5, new Rotation {Value = quaternion.Euler(0,5*math.PI/3,0)});
                 
                 ecb.SetComponent(index,sprout,new TxAutotrophParts {
-                    leaf =  leaf,
-                    petal0 = petal0
+                    //leaf =  leaf,
+                    petal0 = petal0,
+                    petal1 = petal1,
+                    petal2 = petal2,
+                    petal3 = petal3,
+                    petal4 = petal4,
+                    petal5 = petal5
                 });
                 ecb.AddComponent(index,sprout, new Scale{Value = 1});
                 ecb.AddComponent<RandomComponent>(index,sprout,new RandomComponent()
@@ -351,7 +424,13 @@ namespace EcoSim {
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
-                ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
+                //ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
+                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(red,0,0,1)});
+                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(0,green,0,1)});
+                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(0,0,blue,1)});
+                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(red,green,blue,1)});
+                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(red,green,blue,1)});
+                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(red,green,blue,1)});
 
             }
         }
@@ -364,36 +443,37 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotroph>(),
                 ComponentType.ReadOnly<Prefab>()
             ).ToEntityArray(Allocator.TempJob);
-            NativeArray<Entity> prefabLeafArray = GetEntityQuery(
-                ComponentType.ReadOnly<TxAutotrophLeafMeshFlag>(),
-                ComponentType.ReadOnly<Prefab>()
-            ).ToEntityArray(Allocator.TempJob);
+            
+            //NativeArray<Entity> prefabLeafArray = GetEntityQuery(
+            //    ComponentType.ReadOnly<TxAutotrophLeafMeshFlag>(),
+            //    ComponentType.ReadOnly<Prefab>()
+            //).ToEntityArray(Allocator.TempJob);
             NativeArray<Entity> prefabPetalArray = GetEntityQuery(
                 ComponentType.ReadOnly<TxAutotrophPetalMeshFlag>(),
                 ComponentType.ReadOnly<Prefab>()
             ).ToEntityArray(Allocator.TempJob);
             if (prefabArray.Length > 0) {
                 prefabEntity = prefabArray[0];
-                prefabLeafEntity = prefabLeafArray[0];
+                //prefabLeafEntity = prefabLeafArray[0];
                 prefabPetalEntity = prefabPetalArray[0];
                 var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
                 Sprout job = new Sprout() {
                     ecb = ecb,
                     prefabEntity = prefabEntity,
-                    prefabLeafEntity = prefabLeafEntity,
+                    //prefabLeafEntity = prefabLeafEntity,
                     prefabPetalEntity = prefabPetalEntity
                 };
                 JobHandle jobHandle = job.Schedule(m_Group,inputDeps);
                     //Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
                 prefabArray.Dispose();
-                prefabLeafArray.Dispose();
+                //prefabLeafArray.Dispose();
                 prefabPetalArray.Dispose();
                 jobHandle.Complete();
                 return jobHandle;
             }
             prefabArray.Dispose();
-            prefabLeafArray.Dispose();
+            //prefabLeafArray.Dispose();
             prefabPetalArray.Dispose();
             
             

@@ -100,9 +100,9 @@ namespace Tests {
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,leafs.Length,"Leafs count");
 
-            var e1 = m_Manager.GetComponentData<TxAutotrophParts>(stems[0]).leaf;
-            var e2 = leafs[0];
-            Assert.AreEqual(e1,e2,"stem.part.leaf == leaf");
+            //var e1 = m_Manager.GetComponentData<TxAutotrophParts>(stems[0]).leaf;
+            //var e2 = leafs[0];
+            //Assert.AreEqual(e1,e2,"stem.part.leaf == leaf");
             
             stems.Dispose();
             leafs.Dispose();

@@ -102,7 +102,6 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
                      TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
         var sh = terrain.SampleHeight(position);
-        Debug.Log(position + " " + position.y + " : " + sh);
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         var entity = em.CreateEntity();
         em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
