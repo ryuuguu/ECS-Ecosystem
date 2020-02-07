@@ -278,13 +278,11 @@ namespace EcoSim {
                     {Value = new float3(translation.Value.x,
                         translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
                         translation.Value.z)});
-                   
-
+                    
                     ecb.SetComponent(index, txAutotrophParts.petal5, new Translation
                     {Value = new float3(translation.Value.x,
                         translation.Value.y+txAutotrophConsts.stemScale * txAutotrophPhenotype.height*0.9f,
                         translation.Value.z)});
-                    
                     
                 }
                 
@@ -467,18 +465,18 @@ namespace EcoSim {
                 var red3 = (txAutotrophGenome.nrg2Seed-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
                 var green4 = (txAutotrophGenome.nrg2Storage-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
                 var blue5 = (txAutotrophGenome.seedSize-1) / 7;
-                var baseC = 0.2f;
+                var baseC =  normalize(0);
                 
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
                 //ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
                 ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(nr0,ng0 ,nb0 ,1)});
-                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(baseC ,green1,baseC ,1)});
+                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(baseC ,baseC,baseC ,1)});
                 ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(nr1,ng1 ,nb1 ,1)});
-                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(red3,baseC ,baseC ,1)});
+                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(baseC,baseC ,baseC ,1)});
                 ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(nr2,ng2 ,nb2 ,1)});
-                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(baseC ,baseC ,blue5,1)});
+                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(baseC ,baseC ,baseC,1)});
 
             }
         }
@@ -562,9 +560,27 @@ namespace EcoSim {
                  [ReadOnly] ref Translation translation
             ) {
                 
-                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL, float rangeH) {
+                (float, float, float) Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
+                    float rangeH, float cg, float dcg) {
                     var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
-                    return math.select(val, mutant,rate<random.NextFloat(0,1));
+                    bool mutate = rate < random.NextFloat(0, 1);
+                    if (mutate) {
+                        if (dcg == 0) {
+                            if (mutant > val) {
+                                dcg = 1;
+                            }
+                            else {
+                                dcg = -1;
+                            }
+                        }
+                        cg += dcg;
+                        return (mutant, cg, dcg);
+                    }
+                    else {
+                        return (val, cg, dcg);
+                    }
+                    
+                    //return (math.select(val, mutant,mutate),0,0);
                 }
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
@@ -618,22 +634,22 @@ namespace EcoSim {
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
 
                         var newGenome = new TxAutotrophGenome();
-                        newGenome.nrg2Height = Mutate(txAutotrophGenome.nrg2Height, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.nrg2Leaf = Mutate(txAutotrophGenome.nrg2Leaf, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.nrg2Seed = Mutate(txAutotrophGenome.nrg2Seed, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.nrg2Storage = Mutate(txAutotrophGenome.nrg2Storage, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.maxHeight = Mutate(txAutotrophGenome.maxHeight, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.maxLeaf = Mutate(txAutotrophGenome.maxLeaf, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.ageRate = Mutate(txAutotrophGenome.ageRate, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
-                        newGenome.seedSize = Mutate(txAutotrophGenome.seedSize, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH);
+                        (newGenome.nrg2Height,txCG.r0,txCG.dr0) = Mutate(txAutotrophGenome.nrg2Height, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.r0,txCG.dr0 );
+                        (newGenome.nrg2Leaf, txCG.g0,txCG.dg0) = Mutate(txAutotrophGenome.nrg2Leaf, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.g0,txCG.dg0);
+                        (newGenome.nrg2Seed, txCG.b0,txCG.db0) = Mutate(txAutotrophGenome.nrg2Seed, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.b0,txCG.db0);
+                        (newGenome.nrg2Storage, txCG.r1,txCG.dr1) = Mutate(txAutotrophGenome.nrg2Storage, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.r1,txCG.dr1);
+                        (newGenome.maxHeight, txCG.g1,txCG.dg1) = Mutate(txAutotrophGenome.maxHeight, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.g1,txCG.dg1);
+                        (newGenome.maxLeaf, txCG.b1,txCG.db1) = Mutate(txAutotrophGenome.maxLeaf, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.b1,txCG.db1);
+                        (newGenome.ageRate, txCG.r2,txCG.dr2) = Mutate(txAutotrophGenome.ageRate, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.r2,txCG.dr2);
+                        (newGenome.seedSize, txCG.g2,txCG.dg2) = Mutate(txAutotrophGenome.seedSize, ref randomComponent.random
+                            ,mRate, mRangeL, mRangeH, txCG.g2,txCG.dg2);
                         ecb.AddComponent<TxAutotrophGenome>(index, e, newGenome);
                         
                         ecb.AddComponent(index, e , txCG);

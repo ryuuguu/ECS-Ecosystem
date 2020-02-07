@@ -10,7 +10,6 @@ using UnityEngine.Serialization;
 using Random = Unity.Mathematics.Random;
 
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
-
     
     public Terrain terrain;
     
@@ -23,12 +22,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     [HideInInspector]
     public float[] localTerrainLight;
     
-    
-    
     public static float defaultLightEnergy = 20;
 
     public static float Fitness(float val) {
-
         return math.select (-0.3f + 1 / (1 + 1 / val),0 ,val==0);
     }
     
@@ -63,7 +59,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     //public static float4 bounds;
     
-    public Vector2 startPos = Vector2.zero;
+    public Vector2[] startPositions ;
    // public float4 boundsInput;
     public GameObject prefabPlant;
     public TxAutotrophGenome txAutotrophGenome;
@@ -78,18 +74,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         terrainLight = new NativeArray<float>(localTerrainLight, Allocator.Persistent);
         //bounds = boundsInput;
         
-        random = new Random(1);
+        random = new Random(environmentSettingsInput.randomSeed);
         //DebugTerrain();
         InitialPlants();
-    }
-
-
-    void DebugTerrain() {
-        var position =new  Vector3 (startPos.x,0,startPos.y);
-        
-        Debug.Log("Pos: "+position + ": " +terrain.SampleHeight(position) + " : "
-                  +environmentSettings[0].environmentConsts.terrainHeightScale.y*
-                                 TerrainValue(position,terrainHeight,environmentSettings[0].environmentConsts.bounds) );
     }
     
     private void OnDestroy() {
@@ -99,17 +86,18 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
 
     public void InitialPlants() {
-        var position =new  Vector3 (startPos.x,0,startPos.y);
-        position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
-                     TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
-        var sh = terrain.SampleHeight(position);
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        var entity = em.CreateEntity();
-        em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
-        em.AddComponentData(entity, new TxAutotrophSprout {location = position,energy = 5});
-        em.AddComponentData(entity, txAutotrophGenome);
-        em.AddComponentData(entity, new  TxAutotrophColorGenome());
-
+        foreach (var startPos in startPositions) {
+            var position = new Vector3(startPos.x, 0, startPos.y);
+            position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
+                         TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
+            var sh = terrain.SampleHeight(position);
+            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+            var entity = em.CreateEntity();
+            em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
+            em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
+            em.AddComponentData(entity, txAutotrophGenome);
+            em.AddComponentData(entity, new TxAutotrophColorGenome());
+        }
     }
     
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs) {
@@ -118,6 +106,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     [Serializable]
     public struct EnvironmentSettings {
+        public uint randomSeed;
         public TxAutotrophConsts txAutotrophConsts;
         public EnvironmentConsts environmentConsts;
     }
@@ -178,9 +167,6 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 localTerrainHeight[i*size+j] =
                     (localTerrainLight[i*size+j] - minlight) / range;
                 forTerrainData[i,j] =  (localTerrainLight[i*size+j] - minlight) / range;
-                if (i == 256 && j == 256) {
-                    Debug.Log("MakeTerrainSin: "+ i+":"+j + " size: "+size + " : " + forTerrainData[i,j] + " index:"+ (i*size+j) );
-                }
             }
         }
         td.SetHeights(0,0, forTerrainData);
