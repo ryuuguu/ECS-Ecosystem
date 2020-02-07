@@ -418,19 +418,25 @@ namespace EcoSim {
                     ageRate = txAutotrophGenome.ageRate,
                     seedSize = txAutotrophGenome.seedSize}
                         );
-                var red = (txAutotrophGenome.maxHeight-1) / (txAutotrophGenome.maxHeight + txAutotrophGenome.maxLeaf-2);
-                var green = (txAutotrophGenome.nrg2Height-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
-                var blue = (txAutotrophGenome.ageRate-1) / 7;
+                
+                var red0 = (txAutotrophGenome.maxHeight-1) / (txAutotrophGenome.maxHeight + txAutotrophGenome.maxLeaf-2);
+                var green1 = (txAutotrophGenome.nrg2Height-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
+                var blue2 = (txAutotrophGenome.ageRate-1) / 7;
+                var red3 = (txAutotrophGenome.nrg2Seed-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
+                var green4 = (txAutotrophGenome.nrg2Storage-1) / (txAutotrophGenome.nrg2Height + txAutotrophGenome.nrg2Leaf-2);
+                var blue5 = (txAutotrophGenome.seedSize-1) / 7;
+                var baseC = 0.2f;
+                
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
                 //ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
-                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(red,0,0,1)});
-                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(0,green,0,1)});
-                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(0,0,blue,1)});
-                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(red,green,blue,1)});
-                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(red,green,blue,1)});
-                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(red,green,blue,1)});
+                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(red0,baseC ,baseC ,1)});
+                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(baseC ,green1,baseC ,1)});
+                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(baseC ,baseC ,blue2,1)});
+                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(red3,baseC ,baseC ,1)});
+                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC ,green4,baseC ,1)});
+                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(baseC ,baseC ,blue5,1)});
 
             }
         }
