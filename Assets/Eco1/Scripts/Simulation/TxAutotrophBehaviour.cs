@@ -12,6 +12,7 @@ using Unity.Burst;
 using UnityEditor.IMGUI.Controls;
 using Collider = UnityEngine.Collider;
 using Material = Unity.Physics.Material;
+using Unity.Rendering;
 
 
 namespace EcoSim {
@@ -335,7 +336,8 @@ namespace EcoSim {
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
                 ecb.DestroyEntity(index,entity);
-                
+                ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(0,0f,1f,1)});
+
             }
         }
 

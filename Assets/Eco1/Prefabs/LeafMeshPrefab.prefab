@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5810344067634028846}
   - component: {fileID: 6535908850548299044}
   - component: {fileID: 3805947263028063770}
+  - component: {fileID: 775180223836482898}
   m_Layer: 0
   m_Name: LeafMeshPrefab
   m_TagString: Untagged
@@ -106,3 +107,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ConversionMode: 0
+--- !u!114 &775180223836482898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8208447225958284972}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb676996e2f3ffb46be05e024c7f0ff7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  color: {r: 0, g: 0.525, b: 0.44, a: 1}
