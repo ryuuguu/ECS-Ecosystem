@@ -31,8 +31,14 @@ namespace EcoSim {
     public struct TxAutotrophParts : IComponentData {
         public Entity stem;
         public Entity leaf;
+        public Entity petal0;
+        public Entity petal1;
+        public Entity petal2;
+        public Entity petal3;
+        public Entity petal4;
+        public Entity petal5;
         //public Entity seedPod;
-        
+
     }
 
 
