@@ -6,6 +6,7 @@ using Unity.Collections;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
+using UnityEngine.Serialization;
 using Random = Unity.Mathematics.Random;
 
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
@@ -127,14 +128,16 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float heightMultiple ;
         public float ageMultiple ;
         public float seedDivisor;
-        public float LeafShadeRadiusMultiplier;
-        public float LeafShadeEffectMultiplier;
+        [FormerlySerializedAs("LeafShadeRadiusMultiplier")] public float leafShadeRadiusMultiplier;
+        [FormerlySerializedAs("LeafShadeEffectMultiplier")] public float leafShadeEffectMultiplier;
         public float leafScale;
         public float stemScale;
         public float seedRangeMultiplier;
         public float mutationRate;
         public float mutationRange;
-        
+
+        public float colorGeneScale; 
+
     }
     [Serializable]
     public struct EnvironmentConsts {
