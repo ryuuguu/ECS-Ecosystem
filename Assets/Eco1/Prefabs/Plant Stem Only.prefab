@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3683453799348555718}
   - component: {fileID: 3061221646401638113}
   m_Layer: 0
-  m_Name: Plant 3B
+  m_Name: Plant Stem Only
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -124,10 +124,10 @@ MonoBehaviour:
         CombineMode: 2
     m_BelongsTo:
       m_Override: 0
-      m_Value: 0101010101010101010101010101010101010101010101010101010101010101
+      m_Value: 0100000000000000000000000000000000000000000000000000000000000000
     m_CollidesWith:
       m_Override: 0
-      m_Value: 0101010101010101010101010101010101010101010101010101010101010101
+      m_Value: 0101000000000000000000000000000000000000000000000000000000000000
     m_RaisesCollisionEvents:
       m_Override: 0
       m_Value: 0

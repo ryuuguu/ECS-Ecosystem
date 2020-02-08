@@ -302,7 +302,8 @@ namespace EcoSim {
                             new SphereGeometry {
                                 Center = float3.zero,
                                 Radius = math.max(0.01f,txAutotrophPhenotype.leaf* txAutotrophConsts.leafShadeRadiusMultiplier),
-                            }, CollisionFilter.Default,new Material{Flags = Material.MaterialFlags.IsTrigger})
+                            }, new  CollisionFilter{BelongsTo = 1,CollidesWith = 1,GroupIndex = 0},
+                            new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
                 }
                 
@@ -472,11 +473,11 @@ namespace EcoSim {
                 ecb.DestroyEntity(index,entity);
                 //ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
                 ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(nr0,ng0 ,nb0 ,1)});
-                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(baseC ,baseC,baseC ,1)});
+                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
                 ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(nr1,ng1 ,nb1 ,1)});
-                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(baseC,baseC ,baseC ,1)});
-                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(nr2,ng2 ,nb2 ,1)});
-                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(baseC ,baseC ,baseC,1)});
+                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
+                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(nr2,ng2 ,baseC ,1)});
+                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
 
             }
         }

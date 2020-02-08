@@ -86,6 +86,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
 
     public void InitialPlants() {
+        float c = -1000;
         foreach (var startPos in startPositions) {
             var position = new Vector3(startPos.x, 0, startPos.y);
             position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
@@ -96,7 +97,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
             em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
             em.AddComponentData(entity, txAutotrophGenome);
-            em.AddComponentData(entity, new TxAutotrophColorGenome());
+            em.AddComponentData(entity, new TxAutotrophColorGenome{b2 = c});
+            c = 1000;
         }
     }
     
