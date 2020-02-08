@@ -30,12 +30,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         public float  shade;
 
         // dev & testing only
-        public Entity entityB; 
-        public float3 translationA;
-        public float3 translationB;
-        public float leafA;
-        public float leafB;
-        
+        public Entity entityB;
     }
     
     protected override void OnCreate() {
@@ -59,8 +54,6 @@ public class TriggerLeafSystem : JobComponentSystem {
     }
     
     struct GetTriggerEventCount : ITriggerEventsJob {
-        [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
-        
         [NativeFixedLength(1)] public NativeArray<int> pCounter;
         
         // unsafe writing to this?
@@ -74,9 +67,8 @@ public class TriggerLeafSystem : JobComponentSystem {
     struct MakeShadePairs : ITriggerEventsJob {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
-
-        [NativeFixedLength(1)] public NativeArray<int> pCounter;
-        public NativeArray<ShadePair> shadePairs;
+        
+        public NativeHashMap<Entity, float> shadeDict;
         
         // need entity a to be lower than entity B
         //  need leaf0 to be less than leaf1 
@@ -89,55 +81,54 @@ public class TriggerLeafSystem : JobComponentSystem {
             var shadePair  = new ShadePair();
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
+            Entity e;
             
             var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height> translations[eB].Value.y 
                        + txAutotrophPhenotype[eB].height;
             if (swap) {
                 shadePair.entity = eB;
+                e = eB;
                 shadePair.entityB = eA;
             }
             else {
                 shadePair.entity = eA;
+                e = eA;
                 shadePair.entityB = eB; 
             }
 
-            shadePair.translationA = translations[shadePair.entity].Value;
-            shadePair.translationB = translations[shadePair.entityB].Value;
+            
             var dSqr = math.distancesq(translations[shadePair.entity].Value, translations[shadePair.entityB].Value);
             var r0 = math.max(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
             var r1 = math.min(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
             var minD = (r0-r1 )* (r0 - r1);
             var maxD = (r0+r1 )* (r0 + r1)-minD;
             var num = dSqr - minD;
-            if(num <= 0 ) {
-                shadePair.shade = r1;
-            } else {
-                shadePair.shade = (1-((maxD - num) / maxD)) *r1 ;
+            if (!shadeDict.ContainsKey(e)) {
+                shadeDict[e] = 0;
             }
-
-            shadePair.leafA = maxD;
-            shadePair.leafB = num;
+            if(num <= 0 ) {
+                
+               shadeDict[e]+= r1;
+            } else {
+                
+                shadeDict[e]+= (1-((maxD - num) / maxD)) *r1;
+            }
             
             // Increment the output counter in a thread safe way.
-            var count = ++pCounter[0] - 1;
-
-            shadePairs[count] = shadePair;
+            
         }
     }
 
     struct AddShade : IJobForEachWithEntity<Shade> {
-        
-        [ReadOnly]public NativeArray<ShadePair> shadePairs;
-        
+        [ReadOnly] public NativeHashMap<Entity, float> shadeDict;
+
         public void Execute(Entity entity, int index, ref Shade shade) {
-            var sum = 0f;
-            
-            for (int i = 0; i < shadePairs.Length; i++) {
-                if (shadePairs[i].entity == entity) {
-                    sum += shadePairs[i].shade;
-                }
+            if (shadeDict.ContainsKey(entity)){
+                shade.Value = shadeDict[entity];
             }
-            shade.Value = sum;
+            else {
+                shade.Value = 0;
+            }
         }
     }
     
@@ -147,23 +138,22 @@ public class TriggerLeafSystem : JobComponentSystem {
         m_TriggerEntitiesIndex[0] = 0;
         
         JobHandle getTriggerEventCountJobHandle = new GetTriggerEventCount() {
-            pCounter = m_TriggerEntitiesIndex,
-            translations =  translations
+            pCounter = m_TriggerEntitiesIndex
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld, inputDeps);
         getTriggerEventCountJobHandle.Complete();
-        var shadePairs = new NativeArray<ShadePair>(m_TriggerEntitiesIndex[0], Allocator.TempJob);
+        
+        //m_TriggerEntitiesIndex[0] is too large could use count of entites with triggers if can get it fast
+        var shadeDict = new NativeHashMap<Entity,float>(m_TriggerEntitiesIndex[0], Allocator.TempJob);
         m_TriggerEntitiesIndex[0] = 0;
         
         JobHandle makeShadePairsJobHandle = new MakeShadePairs
         {
             translations = GetComponentDataFromEntity<Translation>(),
             txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
-            
-            shadePairs = shadePairs,
-            pCounter = m_TriggerEntitiesIndex,
+            shadeDict = shadeDict
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld, getTriggerEventCountJobHandle);
         makeShadePairsJobHandle.Complete();
-        m_TriggerEntitiesIndex[0] = 0;
+        
         
         /*
         if (shadePairs.Length != 0) { 
@@ -175,11 +165,12 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         JobHandle addShadeJobHandle = new AddShade
         {
-            shadePairs = shadePairs,
+            shadeDict = shadeDict,
         }.Schedule(m_GroupShade, makeShadePairsJobHandle);
         addShadeJobHandle.Complete();
         
-        shadePairs.Dispose();
+        shadeDict.Dispose();
+        
         return makeShadePairsJobHandle;
     }
 }
