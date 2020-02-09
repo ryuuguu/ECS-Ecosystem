@@ -11,7 +11,8 @@
         "Unity.Transforms",
         "Unity.Mathematics",
         "Unity.Physics",
-        "UnsafeComps"
+        "UnsafeComps",
+        "Unity.Rendering.Hybrid"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -11,6 +11,7 @@ using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Physics;
+using Unity.Rendering;
 
 
 
@@ -48,7 +49,7 @@ namespace Tests {
                             Center = float3.zero,
                             Radius = 1,
                         }, CollisionFilter.Default,new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
-
+            m_Manager.AddComponentData(stem, new  TxAutotrophColorGenome { });
             
             //physics collider
             
@@ -71,7 +72,9 @@ namespace Tests {
             var petal = m_Manager.CreateEntity();
             m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
             m_Manager.AddComponentData(petal, new Prefab());
-            
+            m_Manager.AddComponentData(petal, new Translation());
+            m_Manager.AddComponentData(petal, new Rotation());
+            m_Manager.AddComponentData(petal, new MaterialColor());
             
             var es = new Environment.EnvironmentSettings[1]; 
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
@@ -110,12 +113,12 @@ namespace Tests {
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,stems.Length,"Stems count");
             
-            var leafs = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophLeafMeshFlag>()
+            var petals = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophPetalMeshFlag>()
             ).ToEntityArray(Allocator.TempJob);
-            Assert.AreEqual(1,leafs.Length,"Leafs count");
+            Assert.AreEqual(6,petals.Length,"Petals count");
             
             stems.Dispose();
-            leafs.Dispose();
+            petals.Dispose();
         }
 
         [Test]
@@ -392,6 +395,7 @@ namespace Tests {
             sprouts.Dispose();
             
             //check making more sprouts 
+            // now only make 1 sprout
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
                 leaf = 1,
                 height = 1,
@@ -400,22 +404,17 @@ namespace Tests {
             });
 
             World.CreateSystem<TxAutotrophMakeSproutSystem>().Update();
-            Assert.AreEqual( 0f, m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
+            Assert.AreEqual( 2f, m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
                 "multi Seed energy");
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             
             var sprouts3 = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophSprout>()
             ).ToEntityArray(Allocator.TempJob);
             
-            Assert.AreEqual(4,sprouts3.Length," triple + single sprout");
+            Assert.AreEqual(2,sprouts3.Length," triple + single sprout");
             sprouts3.Dispose();
             Environment.terrainHeight.Dispose();
         }
-        
-
-
     }
-
-
 }
 
