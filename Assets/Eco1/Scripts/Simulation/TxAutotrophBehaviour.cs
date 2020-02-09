@@ -469,7 +469,9 @@ namespace EcoSim {
                 var baseC =  normalize(0);
                 
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
-                ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
+               // ecb.RemoveComponent<TxAutotrophGenome>(index,entity);
+               // ecb.RemoveComponent<TxAutotrophColorGenome>(index,entity);
+               // ecb.RemoveComponent<TxAutotrophSprout>(index,entity);
                 ecb.DestroyEntity(index,entity);
                 //ecb.SetComponent(index, leaf, new MaterialColor {Value = new float4(red,green,blue,1)});
                 ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(nr0,ng0 ,nb0 ,1)});

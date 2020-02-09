@@ -66,6 +66,11 @@ namespace Tests {
             m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophGenome { });
+            m_Manager.AddComponentData(sprout, new  TxAutotrophColorGenome { });
+
+            var petal = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
+            m_Manager.AddComponentData(petal, new Prefab());
             
             
             var es = new Environment.EnvironmentSettings[1]; 
@@ -81,12 +86,21 @@ namespace Tests {
 
         [Test]
         public void Tx_Sprout_Test() {
+            var presprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
+                ComponentType.ReadOnly<TxAutotrophSprout>(),
+                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<TxAutotrophColorGenome>()
+            ).ToEntityArray(Allocator.TempJob);
+            Assert.AreEqual(1,presprouts.Length,"Presprouts count");
+            presprouts.Dispose();
+            
             World.CreateSystem<TxAutotrophSproutSystem>().Update(); 
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             
             var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
-                ComponentType.ReadOnly<TxAutotrophGenome>()
+                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<TxAutotrophColorGenome>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(0,sprouts.Length,"Sprouts count");
             sprouts.Dispose();
@@ -99,10 +113,6 @@ namespace Tests {
             var leafs = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophLeafMeshFlag>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,leafs.Length,"Leafs count");
-
-            //var e1 = m_Manager.GetComponentData<TxAutotrophParts>(stems[0]).leaf;
-            //var e2 = leafs[0];
-            //Assert.AreEqual(e1,e2,"stem.part.leaf == leaf");
             
             stems.Dispose();
             leafs.Dispose();

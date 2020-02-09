@@ -10,7 +10,8 @@
         "Unity.Collections",
         "Unity.Transforms",
         "Unity.Mathematics",
-        "Unity.Physics"
+        "Unity.Physics",
+        "UnsafeComps"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
