@@ -62,6 +62,33 @@ namespace EcoSim {
     }
 
     [System.Serializable]
+    public struct TxAutotrophChrome1A {
+        public TxAutotrophChrome1 Value;
+    }
+
+    [System.Serializable]
+    public struct TxAutotrophChrome1B {
+        public TxAutotrophChrome1 Value;
+    }
+
+    [System.Serializable]
+    public struct TxAutotrophChrome1W {
+        public TxAutotrophChrome1 Value;
+    }
+
+    [System.Serializable]
+    public struct TxAutotrophChrome1 {
+        public float nrg2Leaf; 
+        public float nrg2Seed;
+        public float nrg2Height;
+        public float nrg2Storage;
+        public float maxLeaf;  //max leaf energy
+        public float maxHeight; //max Height
+        public float seedSize;  //Size of one seed
+        public float ageRate;
+    }
+    
+    [System.Serializable]
     public struct TxAutotrophColorGenome : IComponentData {
         public float r0; 
         public float g0;
