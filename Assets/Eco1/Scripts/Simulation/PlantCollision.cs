@@ -14,6 +14,7 @@ using UnityEditor;
 using Math = System.Math;
 
 
+[BurstCompile]
 [UpdateAfter(typeof(EndFramePhysicsSystem))]
 public class TriggerLeafSystem : JobComponentSystem {
     EndSimulationEntityCommandBufferSystem m_EntityCommandBufferSystem;
@@ -64,7 +65,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         }
     }
     
-    struct MakeShadePairs : ITriggerEventsJob {
+    struct MakeShadeDict : ITriggerEventsJob {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
         
@@ -78,44 +79,45 @@ public class TriggerLeafSystem : JobComponentSystem {
         // r
         
         public void Execute(TriggerEvent triggerEvent) {
-            var shadePair  = new ShadePair();
+            
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
             Entity e;
+            Entity eOther;
             
             var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height> translations[eB].Value.y 
                        + txAutotrophPhenotype[eB].height;
             if (swap) {
-                shadePair.entity = eB;
                 e = eB;
-                shadePair.entityB = eA;
+                eOther = eA;
             }
             else {
-                shadePair.entity = eA;
                 e = eA;
-                shadePair.entityB = eB; 
+                eOther = eB;
             }
-
             
-            var dSqr = math.distancesq(translations[shadePair.entity].Value, translations[shadePair.entityB].Value);
-            var r0 = math.max(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
-            var r1 = math.min(txAutotrophPhenotype[shadePair.entity].leaf, txAutotrophPhenotype[shadePair.entityB].leaf);
-            var minD = (r0-r1 )* (r0 - r1);
-            var maxD = (r0+r1 )* (r0 + r1)-minD;
+            var dSqr = math.distancesq(translations[e].Value, translations[eOther].Value);
+            var r0 = math.max(txAutotrophPhenotype[e].leaf, txAutotrophPhenotype[eOther].leaf);
+            var r1 = math.min(txAutotrophPhenotype[e].leaf, txAutotrophPhenotype[eOther].leaf);
+            var rSub = r0 - r1;
+            var minD = rSub * rSub;
             var num = dSqr - minD;
             if (!shadeDict.ContainsKey(e)) {
-                shadeDict[e] = 0;
+                if(num <= 0 ) {
+                    shadeDict[e]= r1;
+                } else {
+                    var rAdd = r0 + r1;
+                    var maxD = rAdd * rAdd-minD;
+                    shadeDict[e]= (1-((maxD - num) / maxD)) *r1;
+                }
             }
             if(num <= 0 ) {
-                
-               shadeDict[e]+= r1;
+                shadeDict[e]+= r1;
             } else {
-                
+                var rAdd = r0 + r1;
+                var maxD = rAdd * rAdd-minD;
                 shadeDict[e]+= (1-((maxD - num) / maxD)) *r1;
             }
-            
-            // Increment the output counter in a thread safe way.
-            
         }
     }
 
@@ -136,22 +138,28 @@ public class TriggerLeafSystem : JobComponentSystem {
         ComponentDataFromEntity<Translation> translations = GetComponentDataFromEntity<Translation>();
         // Get the number of TriggerEvents so that we can allocate a native array
         m_TriggerEntitiesIndex[0] = 0;
-        
+        /*
         JobHandle getTriggerEventCountJobHandle = new GetTriggerEventCount() {
             pCounter = m_TriggerEntitiesIndex
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld, inputDeps);
-        getTriggerEventCountJobHandle.Complete();
+         getTriggerEventCountJobHandle.Complete();
+        */
+        
+        var shades = GetEntityQuery(ComponentType.ReadOnly<Shade>())
+            .ToEntityArray(Allocator.TempJob);
+        var shadesCount = shades.Length;
+        shades.Dispose();
         
         //m_TriggerEntitiesIndex[0] is too large could use count of entites with triggers if can get it fast
-        var shadeDict = new NativeHashMap<Entity,float>(m_TriggerEntitiesIndex[0], Allocator.TempJob);
-        m_TriggerEntitiesIndex[0] = 0;
+        var shadeDict = new NativeHashMap<Entity,float>(shadesCount, Allocator.TempJob);
+       // m_TriggerEntitiesIndex[0] = 0;
         
-        JobHandle makeShadePairsJobHandle = new MakeShadePairs
+        JobHandle makeShadePairsJobHandle = new MakeShadeDict
         {
             translations = GetComponentDataFromEntity<Translation>(),
             txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
             shadeDict = shadeDict
-        }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld, getTriggerEventCountJobHandle);
+        }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
         makeShadePairsJobHandle.Complete();
         
         
