@@ -62,7 +62,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public Vector2[] startPositions ;
    // public float4 boundsInput;
     public GameObject prefabPlant;
-    public TxAutotrophChrome1W txAutotrophChrome1W;
+    public TxAutotrophChrome1AB txAutotrophChrome1Ab;
     
     protected Random random;
     
@@ -96,7 +96,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             var entity = em.CreateEntity();
             em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
             em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
-            em.AddComponentData(entity, txAutotrophChrome1W);
+            em.AddComponentData(entity, txAutotrophChrome1Ab);
+            em.AddComponentData(entity, txAutotrophChrome1Ab.GetChrome1W());
             em.AddComponentData(entity, new TxAutotrophColorGenome{b2 = c});
             c = 1000;
         }

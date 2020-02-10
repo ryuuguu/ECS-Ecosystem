@@ -79,7 +79,6 @@ public class TriggerLeafSystem : JobComponentSystem {
         // r
         
         public void Execute(TriggerEvent triggerEvent) {
-            
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
             Entity e;

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine.Assertions.Comparers;
+using UnityEngine.UIElements;
 
 /* 
 [System.Serializable]
@@ -17,13 +19,27 @@ public struct TxAutotrophGenome : IComponentData {
 }
 */
 [System.Serializable]
-public struct TxAutotrophChrome1A : IComponentData{
-    public TxAutotrophChrome1 Value;
-}
+public struct TxAutotrophChrome1AB : IComponentData{
+    public TxAutotrophChrome1 ValueA;
+    public TxAutotrophChrome1 ValueB;
 
-[System.Serializable]
-public struct TxAutotrophChrome1B : IComponentData{
-    public TxAutotrophChrome1 Value;
+    public TxAutotrophChrome1W GetChrome1W() {
+        var result = new TxAutotrophChrome1W();
+        for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
+            result.Value[i] = (ValueA[i] + ValueB[i])/2;
+        }
+        return result;
+    }
+    
+    public TxAutotrophChrome1AB Copy () {
+        var result = new TxAutotrophChrome1AB();
+        for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
+            result.ValueA[i] = ValueA[i];
+            result.ValueB[i] = ValueB[i];
+        }
+        return result;
+    }
+
 }
 
 [System.Serializable]
@@ -41,13 +57,16 @@ public struct TxAutotrophChrome1 {
     public float maxHeight; //max Height
     public float seedSize;  //Size of one seed
     public float ageRate;
+
+    public const int LENGTH = 8;
+    
     /// <summary>Returns the float element at a specified index.</summary>
     unsafe public float this[int index]
     {
         get
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if ((uint)index >= 24)
+            if ((uint)index >= LENGTH)
                 throw new System.ArgumentException("get index must be between[0...23] was "+ index );
 #endif
             fixed (TxAutotrophChrome1* array = &this) { return ((float*)array)[index]; }
@@ -55,13 +74,20 @@ public struct TxAutotrophChrome1 {
         set
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if ((uint)index >= 24)
+            if ((uint)index >= LENGTH)
                 throw new System.ArgumentException("set index must be between[0...23] was " + index);
 #endif
             fixed (float* array = &nrg2Leaf) { array[index] = value; }
         }
     }
 
+    public TxAutotrophChrome1 Copy() {
+        var result = new TxAutotrophChrome1();
+        for (int i = 0; i < LENGTH; i++) {
+            result[i] = this[i];
+        }
+        return result;
+    }
 }
     
 [System.Serializable]

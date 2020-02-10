@@ -26,13 +26,10 @@ namespace EcoSim {
         }
         void IConvertGameObjectToEntity.Convert(Entity entity, EntityManager dstManager,
             GameObjectConversionSystem conversionSystem) {
-            
             var stemEntity = conversionSystem.GetPrimaryEntity(stem);
-            
             if (enabled) {
                 AddComponentDatas(entity, dstManager); //, leafEntity, seedPodEntity  );
             }
-            
         }
 
         public static void AddComponentDatas(Entity entity, EntityManager dstManager) {
@@ -47,6 +44,7 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new Scale() {Value = 1});
             dstManager.AddComponentData(entity, new Shade() {Value = 0});
             dstManager.AddComponentData(entity, new RandomComponent() {random = new Unity.Mathematics.Random(1)});
+            dstManager.AddComponentData(entity, new TxAutotrophChrome1AB());
             dstManager.AddComponentData(entity, new  TxAutotrophChrome1W{ Value = new TxAutotrophChrome1 {
                 nrg2Height = 5,
                 nrg2Leaf = 5,
@@ -60,7 +58,6 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new TxAutotrophColorGenome());
             dstManager.AddComponentData(entity, new TxAutotrophParts {
                 stem = entity,
-                
             });
         }
     }
@@ -317,7 +314,6 @@ namespace EcoSim {
         }
         
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
-            
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
             Grow job = new Grow() {
                 environmentSettings = Environment.environmentSettings,
@@ -326,7 +322,6 @@ namespace EcoSim {
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             jobHandle.Complete();
-            
             return jobHandle;
         }
     }
@@ -342,15 +337,16 @@ namespace EcoSim {
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
+                ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophColorGenome>()
-
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
         
-        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout,TxAutotrophChrome1W,TxAutotrophColorGenome> {
+        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout, TxAutotrophChrome1AB, 
+            TxAutotrophChrome1W,TxAutotrophColorGenome> {
             public Entity prefabEntity;
             public Entity prefabPetalEntity;
             public EntityCommandBuffer.Concurrent ecb;
@@ -359,6 +355,7 @@ namespace EcoSim {
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
                 [ReadOnly] ref TxAutotrophSprout txAutotrophSprout,
+                [ReadOnly] ref TxAutotrophChrome1AB txAutotrophChrome1Ab, 
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                 [ReadOnly] ref TxAutotrophColorGenome txAutotrophColorGenome
             ) {
@@ -407,18 +404,8 @@ namespace EcoSim {
                 ecb.AddComponent(index,sprout, new Scale{Value = 1});
                 ecb.SetComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
-                ecb.SetComponent(index,sprout, new TxAutotrophChrome1W{Value = new TxAutotrophChrome1{
-                        nrg2Height = txAutotrophChrome1W.Value.nrg2Height,
-                        nrg2Leaf = txAutotrophChrome1W.Value.nrg2Leaf,
-                        nrg2Seed = txAutotrophChrome1W.Value.nrg2Seed,
-                        nrg2Storage =txAutotrophChrome1W.Value.nrg2Storage,
-                        maxHeight = txAutotrophChrome1W.Value.maxHeight,
-                        maxLeaf = txAutotrophChrome1W.Value.maxLeaf,
-                        ageRate = txAutotrophChrome1W.Value.ageRate,
-                        seedSize = txAutotrophChrome1W.Value.seedSize
-                        }
-                    }
-                );
+                ecb.SetComponent(index,sprout, txAutotrophChrome1Ab.Copy());
+                ecb.SetComponent(index,sprout, new TxAutotrophChrome1W{Value = txAutotrophChrome1W.Value.Copy()});
                 ecb.SetComponent(index,sprout, new TxAutotrophColorGenome(){
                     r0 = txAutotrophColorGenome.r0,
                     g0 = txAutotrophColorGenome.g0,
@@ -510,7 +497,6 @@ namespace EcoSim {
             //prefabLeafArray.Dispose();
             prefabPetalArray.Dispose();
             
-            
             return inputDeps;
         }
     }
@@ -525,6 +511,7 @@ namespace EcoSim {
             m_Group = GetEntityQuery(
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
                 ComponentType.ReadWrite<RandomComponent>(),
+                ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<Translation>(),
                 ComponentType.ReadOnly<TxAutotrophColorGenome>()
@@ -533,8 +520,8 @@ namespace EcoSim {
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
-        struct Sprout : IJobForEachWithEntity< TxAutotrophPhenotype,RandomComponent, TxAutotrophChrome1W, 
-            TxAutotrophColorGenome,Translation> {
+        struct MakeSprout : IJobForEachWithEntity< TxAutotrophPhenotype,RandomComponent, TxAutotrophChrome1AB,
+            TxAutotrophChrome1W, TxAutotrophColorGenome,Translation> {
             
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
@@ -543,32 +530,20 @@ namespace EcoSim {
             public void Execute(Entity entity, int index,
                  ref TxAutotrophPhenotype txAutotrophPhenotype,
                  ref RandomComponent randomComponent,
+                 [ReadOnly] ref TxAutotrophChrome1AB txAutotrophChrome1AB,
                  [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                  [ReadOnly] ref TxAutotrophColorGenome txAutotrophColorGenome,
                  [ReadOnly] ref Translation translation
             ) {
-                
-                (float, float, float) Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
-                    float rangeH, float cg, float dcg) {
-                    var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
+                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
+                    float rangeH) {
                     bool mutate = rate < random.NextFloat(0, 1);
                     if (mutate) {
-                        if (dcg == 0) {
-                            if (mutant > val) {
-                                dcg = 1;
-                            }
-                            else {
-                                dcg = -1;
-                            }
-                        }
-                        cg += dcg;
-                        return (mutant, cg, dcg);
+                        var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
+                        return mutant;
+                    } else {
+                        return val;
                     }
-                    else {
-                        return (val, cg, dcg);
-                    }
-                    
-                    //return (math.select(val, mutant,mutate),0,0);
                 }
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
@@ -596,7 +571,6 @@ namespace EcoSim {
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophChrome1W.Value.seedSize,
                             location = location
-                            
                         });
                         var txCG = new TxAutotrophColorGenome() {
                             r0 = txAutotrophColorGenome.r0,
@@ -622,23 +596,18 @@ namespace EcoSim {
                         ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
 
-                        var chrome1W = new TxAutotrophChrome1W();
-                        (chrome1W.Value.nrg2Height,txCG.r0,txCG.dr0) = Mutate(txAutotrophChrome1W.Value.nrg2Height, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.r0,txCG.dr0 );
-                        (chrome1W.Value.nrg2Leaf, txCG.g0,txCG.dg0) = Mutate(txAutotrophChrome1W.Value.nrg2Leaf, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.g0,txCG.dg0);
-                        (chrome1W.Value.nrg2Seed, txCG.b0,txCG.db0) = Mutate(txAutotrophChrome1W.Value.nrg2Seed, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.b0,txCG.db0);
-                        (chrome1W.Value.nrg2Storage, txCG.r1,txCG.dr1) = Mutate(txAutotrophChrome1W.Value.nrg2Storage, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.r1,txCG.dr1);
-                        (chrome1W.Value.maxHeight, txCG.g1,txCG.dg1) = Mutate(txAutotrophChrome1W.Value.maxHeight, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.g1,txCG.dg1);
-                        (chrome1W.Value.maxLeaf, txCG.b1,txCG.db1) = Mutate(txAutotrophChrome1W.Value.maxLeaf, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.b1,txCG.db1);
-                        (chrome1W.Value.ageRate, txCG.r2,txCG.dr2) = Mutate(txAutotrophChrome1W.Value.ageRate, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.r2,txCG.dr2);
-                        (chrome1W.Value.seedSize, txCG.g2,txCG.dg2) = Mutate(txAutotrophChrome1W.Value.seedSize, ref randomComponent.random
-                            ,mRate, mRangeL, mRangeH, txCG.g2,txCG.dg2);
+
+
+
+                        var chrome1AB = txAutotrophChrome1AB.Copy();
+                        for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
+                            chrome1AB.ValueA[i] = Mutate(chrome1AB.ValueA[i], ref randomComponent.random
+                                , mRate, mRangeL, mRangeH);
+                            chrome1AB.ValueB[i] = Mutate(chrome1AB.ValueB[i], ref randomComponent.random
+                                , mRate, mRangeL, mRangeH);
+                        }
+                        var chrome1W = chrome1AB.GetChrome1W();
+                        ecb.AddComponent(index,e,chrome1AB);
                         ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
                         
                         ecb.AddComponent(index, e , txCG);
@@ -654,7 +623,7 @@ namespace EcoSim {
        
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
-            Sprout job = new Sprout() {
+            MakeSprout job = new MakeSprout() {
                 environmentSettings = Environment.environmentSettings,
                 terrainHeight = Environment.terrainHeight,
                 ecb=ecb
