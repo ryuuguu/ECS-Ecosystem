@@ -17,17 +17,17 @@ public struct TxAutotrophGenome : IComponentData {
 }
 
 [System.Serializable]
-public struct TxAutotrophChrome1A {
+public struct TxAutotrophChrome1A : IComponentData{
     public TxAutotrophChrome1 Value;
 }
 
 [System.Serializable]
-public struct TxAutotrophChrome1B {
+public struct TxAutotrophChrome1B : IComponentData{
     public TxAutotrophChrome1 Value;
 }
 
 [System.Serializable]
-public struct TxAutotrophChrome1W {
+public struct TxAutotrophChrome1W : IComponentData{
     public TxAutotrophChrome1 Value;
 }
 

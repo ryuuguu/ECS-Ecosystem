@@ -23,7 +23,6 @@ namespace Tests {
     public class TxAutotrophTest : ECSTestsFixture {
         protected Entity sprout;
         
-
         [SetUp]
         public override void Setup() {
             base.Setup();
@@ -33,42 +32,27 @@ namespace Tests {
             m_Manager.AddComponent<Prefab>(leaf); 
             m_Manager.AddComponentData(leaf, new Translation{ Value = float3.zero});
             m_Manager.AddComponent<TxAutotrophLeafMeshFlag>(leaf);
-             
             
             //prefab plant
             var stem = m_Manager.CreateEntity();
             m_Manager.AddComponent<Prefab>(stem); 
             m_Manager.AddComponent<TxAutotroph>(stem);
             m_Manager.AddComponentData(stem, new Translation{ Value = float3.zero});
-            m_Manager.AddComponentData(stem, new Shade{ Value = 0});
-            m_Manager.AddComponentData(stem, new EnergyStore{ Value = 0});
-            m_Manager.AddComponentData(stem, new TxAutotrophParts {});
+            TxAutotrophBehaviour.AddComponentDatas(stem, m_Manager);
             m_Manager.AddComponentData(stem, new PhysicsCollider {
                     Value = Unity.Physics.SphereCollider.Create(
                         new SphereGeometry {
                             Center = float3.zero,
                             Radius = 1,
-                        }, CollisionFilter.Default,new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
-            m_Manager.AddComponentData(stem, new  TxAutotrophColorGenome { });
-            
-            //physics collider
-            
-            m_Manager.AddComponentData(stem, new  TxAutotrophGenome {
-            });
-            m_Manager.AddComponentData(stem, new  TxAutotrophPhenotype {
-                leaf = 1,
-                height = 1,
-                seed =  0,
-                age = 0
-            });
-            
+                        }, CollisionFilter.Default, 
+                        new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
             sprout = m_Manager.CreateEntity();
             m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
-            m_Manager.AddComponentData(sprout, new  TxAutotrophGenome { });
-            m_Manager.AddComponentData(sprout, new  TxAutotrophColorGenome { });
-
+            m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
+            m_Manager.AddComponentData(sprout, new  TxAutotrophColorGenome{});
+            
             var petal = m_Manager.CreateEntity();
             m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
             m_Manager.AddComponentData(petal, new Prefab());
@@ -91,7 +75,7 @@ namespace Tests {
         public void Tx_Sprout_Test() {
             var presprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
-                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophColorGenome>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,presprouts.Length,"Presprouts count");
@@ -102,7 +86,7 @@ namespace Tests {
             
             var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
-                ComponentType.ReadOnly<TxAutotrophGenome>(),
+                ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophColorGenome>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(0,sprouts.Length,"Sprouts count");
@@ -124,7 +108,7 @@ namespace Tests {
         [Test]
         public void TxAutotrophGrow_Test() {
             //set Environment & genome 
-            m_Manager.SetComponentData(sprout, new TxAutotrophGenome {
+            m_Manager.SetComponentData(sprout, new  TxAutotrophChrome1W{ Value = new TxAutotrophChrome1 {
                 nrg2Height = 1,
                 nrg2Leaf = 1,
                 nrg2Seed = 1,
@@ -132,8 +116,8 @@ namespace Tests {
                 seedSize = 4, // not tested yet
                 maxHeight = 5,
                 maxLeaf = 5.5f
-                
-            });
+            }});
+           
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.seedDivisor = 2;
             es.txAutotrophConsts.stemScale = 1;
@@ -212,8 +196,7 @@ namespace Tests {
             var plant = stems[0];
             stems.Dispose();
             
-            
-            m_Manager.SetComponentData(plant,new TxAutotrophGenome() {
+            m_Manager.SetComponentData(plant, new  TxAutotrophChrome1W{ Value = new TxAutotrophChrome1 {
                 ageRate = 1,
                 maxHeight = 1,
                 maxLeaf = 1,
@@ -222,7 +205,7 @@ namespace Tests {
                 nrg2Seed = 1,
                 nrg2Storage = 1,
                 seedSize = 1
-            });
+            }});
             //age
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.baseValue= 0;
@@ -363,7 +346,7 @@ namespace Tests {
             
             //check making one sprout 
             
-            m_Manager.SetComponentData(plant,new TxAutotrophGenome() {
+            m_Manager.SetComponentData(plant, new  TxAutotrophChrome1W{ Value = new TxAutotrophChrome1 {
                 ageRate = 1,
                 maxHeight = 1,
                 maxLeaf = 1,
@@ -372,7 +355,7 @@ namespace Tests {
                 nrg2Seed = 1,
                 nrg2Storage = 1,
                 seedSize = 1
-            });
+            }});
             //age
            
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
