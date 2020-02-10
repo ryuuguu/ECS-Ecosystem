@@ -116,13 +116,15 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     [Serializable]
     public struct TxAutotrophConsts {
-        public float baseValue ;
-        public float leafMultiple ;
-        public float heightMultiple ;
+        [FormerlySerializedAs("baseValue")] public float baseCost ;
+        [FormerlySerializedAs("leafMultiple")] public float leafCostMultiple ;
+        [FormerlySerializedAs("heightMultiple")] public float heightCostMultiple ;
+        public float pollenCostMultiple ;
         public float ageMultiple ;
         public float seedDivisor;
         [FormerlySerializedAs("LeafShadeRadiusMultiplier")] public float leafShadeRadiusMultiplier;
         [FormerlySerializedAs("LeafShadeEffectMultiplier")] public float leafShadeEffectMultiplier;
+        public float pollenRadiusMultiplier;
         public float leafScale;
         public float stemScale;
         public float seedRangeMultiplier;

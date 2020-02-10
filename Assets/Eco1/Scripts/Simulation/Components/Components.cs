@@ -23,7 +23,6 @@ namespace EcoSim {
     
     #region Taxon Autotroph
     
-    
     public struct Shade : IComponentData {
         public float Value;
     }
@@ -37,8 +36,6 @@ namespace EcoSim {
         public Entity petal3;
         public Entity petal4;
         public Entity petal5;
-        //public Entity seedPod;
-
     }
 
 

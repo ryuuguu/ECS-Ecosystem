@@ -57,8 +57,9 @@ public struct TxAutotrophChrome1 {
     public float maxHeight; //max Height
     public float seedSize;  //Size of one seed
     public float ageRate;
+    public float pollenRange;
 
-    public const int LENGTH = 8;
+    public const int LENGTH = 9;
     
     /// <summary>Returns the float element at a specified index.</summary>
     unsafe public float this[int index]

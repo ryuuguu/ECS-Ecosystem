@@ -149,9 +149,9 @@ namespace EcoSim {
                 };
                 energyStore = new EnergyStore() {
                     Value =energyStore.Value
-                           - (txAutotrophConsts.baseValue + 
-                              txAutotrophConsts.leafMultiple * txAutotrophPhenotype.leaf +
-                              txAutotrophConsts.heightMultiple * txAutotrophPhenotype.height +
+                           - (txAutotrophConsts.baseCost + 
+                              txAutotrophConsts.leafCostMultiple * txAutotrophPhenotype.leaf +
+                              txAutotrophConsts.heightCostMultiple * txAutotrophPhenotype.height +
                               txAutotrophConsts.ageMultiple * txAutotrophChrome1W.Value.ageRate +
                               txAutotrophPhenotype.age / txAutotrophChrome1W.Value.ageRate)
                 };

@@ -211,10 +211,10 @@ namespace Tests {
             }});
             //age
             var es = Environment.environmentSettings[0];
-            es.txAutotrophConsts.baseValue= 0;
+            es.txAutotrophConsts.baseCost= 0;
             es.txAutotrophConsts.ageMultiple = 0;
-            es.txAutotrophConsts.heightMultiple= 0;
-            es.txAutotrophConsts.leafMultiple = 0;
+            es.txAutotrophConsts.heightCostMultiple= 0;
+            es.txAutotrophConsts.leafCostMultiple = 0;
             Environment.environmentSettings[0] = es;
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
                 leaf = 1,
@@ -230,7 +230,7 @@ namespace Tests {
             Assert.AreEqual( 9f, m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore age");
             
-            es.txAutotrophConsts.baseValue= 1;
+            es.txAutotrophConsts.baseCost= 1;
             Environment.environmentSettings[0] = es;
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
                 leaf = 1,
@@ -259,7 +259,7 @@ namespace Tests {
                 "EnergyStore base + age/ageRate + (ageMultiple*ageRate)");
             
             
-            es.txAutotrophConsts.heightMultiple= 1;
+            es.txAutotrophConsts.heightCostMultiple= 1;
             Environment.environmentSettings[0] = es;
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
                 leaf = 1,
@@ -274,7 +274,7 @@ namespace Tests {
                 "EnergyStore base + age/ageRate + (ageMultiple*ageRate) + (heightMultiple * height)");
             
             
-            es.txAutotrophConsts.leafMultiple= 1;
+            es.txAutotrophConsts.leafCostMultiple= 1;
             Environment.environmentSettings[0] = es;
             m_Manager.SetComponentData(plant,new TxAutotrophPhenotype {
                 leaf = 1,
@@ -323,10 +323,10 @@ namespace Tests {
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.seedDivisor = 2;
             es.txAutotrophConsts.stemScale = 1;
-            es.txAutotrophConsts.baseValue= 0;
+            es.txAutotrophConsts.baseCost= 0;
             es.txAutotrophConsts.ageMultiple = 0;
-            es.txAutotrophConsts.heightMultiple= 0;
-            es.txAutotrophConsts.leafMultiple = 0;
+            es.txAutotrophConsts.heightCostMultiple= 0;
+            es.txAutotrophConsts.leafCostMultiple = 0;
             es.environmentConsts.bounds = new float4(-256,-256,256,256);
             es.environmentConsts.terrainResolution = 513;
             Environment.environmentSettings[0] = es;
