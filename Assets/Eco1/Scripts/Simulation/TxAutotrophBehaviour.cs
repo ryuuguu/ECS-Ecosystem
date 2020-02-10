@@ -404,7 +404,7 @@ namespace EcoSim {
                     petal4 = petal4,
                     petal5 = petal5
                 });
-                ecb.SetComponent(index,sprout, new Scale{Value = 1});
+                ecb.AddComponent(index,sprout, new Scale{Value = 1});
                 ecb.SetComponent<RandomComponent>(index,sprout,new RandomComponent()
                     {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                 ecb.SetComponent(index,sprout, new TxAutotrophChrome1W{Value = new TxAutotrophChrome1{
@@ -622,24 +622,24 @@ namespace EcoSim {
                         ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
 
-                        var newGenome = new TxAutotrophGenome();
-                        (newGenome.nrg2Height,txCG.r0,txCG.dr0) = Mutate(txAutotrophChrome1W.Value.nrg2Height, ref randomComponent.random
+                        var chrome1W = new TxAutotrophChrome1W();
+                        (chrome1W.Value.nrg2Height,txCG.r0,txCG.dr0) = Mutate(txAutotrophChrome1W.Value.nrg2Height, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.r0,txCG.dr0 );
-                        (newGenome.nrg2Leaf, txCG.g0,txCG.dg0) = Mutate(txAutotrophChrome1W.Value.nrg2Leaf, ref randomComponent.random
+                        (chrome1W.Value.nrg2Leaf, txCG.g0,txCG.dg0) = Mutate(txAutotrophChrome1W.Value.nrg2Leaf, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.g0,txCG.dg0);
-                        (newGenome.nrg2Seed, txCG.b0,txCG.db0) = Mutate(txAutotrophChrome1W.Value.nrg2Seed, ref randomComponent.random
+                        (chrome1W.Value.nrg2Seed, txCG.b0,txCG.db0) = Mutate(txAutotrophChrome1W.Value.nrg2Seed, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.b0,txCG.db0);
-                        (newGenome.nrg2Storage, txCG.r1,txCG.dr1) = Mutate(txAutotrophChrome1W.Value.nrg2Storage, ref randomComponent.random
+                        (chrome1W.Value.nrg2Storage, txCG.r1,txCG.dr1) = Mutate(txAutotrophChrome1W.Value.nrg2Storage, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.r1,txCG.dr1);
-                        (newGenome.maxHeight, txCG.g1,txCG.dg1) = Mutate(txAutotrophChrome1W.Value.maxHeight, ref randomComponent.random
+                        (chrome1W.Value.maxHeight, txCG.g1,txCG.dg1) = Mutate(txAutotrophChrome1W.Value.maxHeight, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.g1,txCG.dg1);
-                        (newGenome.maxLeaf, txCG.b1,txCG.db1) = Mutate(txAutotrophChrome1W.Value.maxLeaf, ref randomComponent.random
+                        (chrome1W.Value.maxLeaf, txCG.b1,txCG.db1) = Mutate(txAutotrophChrome1W.Value.maxLeaf, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.b1,txCG.db1);
-                        (newGenome.ageRate, txCG.r2,txCG.dr2) = Mutate(txAutotrophChrome1W.Value.ageRate, ref randomComponent.random
+                        (chrome1W.Value.ageRate, txCG.r2,txCG.dr2) = Mutate(txAutotrophChrome1W.Value.ageRate, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.r2,txCG.dr2);
-                        (newGenome.seedSize, txCG.g2,txCG.dg2) = Mutate(txAutotrophChrome1W.Value.seedSize, ref randomComponent.random
+                        (chrome1W.Value.seedSize, txCG.g2,txCG.dg2) = Mutate(txAutotrophChrome1W.Value.seedSize, ref randomComponent.random
                             ,mRate, mRangeL, mRangeH, txCG.g2,txCG.dg2);
-                        ecb.AddComponent<TxAutotrophGenome>(index, e, newGenome);
+                        ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
                         
                         ecb.AddComponent(index, e , txCG);
                         

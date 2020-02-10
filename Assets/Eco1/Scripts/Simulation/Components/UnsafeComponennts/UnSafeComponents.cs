@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 
- 
+/* 
 [System.Serializable]
 public struct TxAutotrophGenome : IComponentData {
     public float nrg2Leaf; 
@@ -15,7 +15,7 @@ public struct TxAutotrophGenome : IComponentData {
     public float seedSize;  //Size of one seed
     public float ageRate;
 }
-
+*/
 [System.Serializable]
 public struct TxAutotrophChrome1A : IComponentData{
     public TxAutotrophChrome1 Value;
