@@ -446,12 +446,12 @@ namespace EcoSim {
                 
                 ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
                 ecb.DestroyEntity(index,entity);
-                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(nr0,ng0 ,nb0 ,1)});
-                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
-                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(nr1,ng1 ,nb1 ,1)});
-                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
-                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(nr2,ng2 ,baseC ,1)});
-                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nb2 ,nb2,nb2 ,1)});
+                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(baseC,baseC,baseC ,1)});
+                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
+                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(baseC,baseC,baseC ,1)});
+                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
+                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC,baseC ,baseC ,1)});
+                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
 
             }
         }
