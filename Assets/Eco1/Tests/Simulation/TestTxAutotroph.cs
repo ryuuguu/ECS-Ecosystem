@@ -129,6 +129,8 @@ namespace Tests {
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.seedDivisor = 2;
             es.txAutotrophConsts.stemScale = 1;
+            es.txAutotrophConsts.minShadeRadius = 1;
+            es.txAutotrophConsts.leafShadeRadiusMultiplier = 10;
             Environment.environmentSettings[0] = es;
             
             World.CreateSystem<TxAutotrophSproutSystem>().Update(); 
@@ -148,15 +150,15 @@ namespace Tests {
             
             m_Manager.SetComponentData(plant, new EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophGrow>().Update();
-            var energy = m_Manager.GetComponentData<EnergyStore>(plant).Value;
-            Assert.AreEqual( 2.5f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
-                "EnergyStore");
+           
             Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
                 "Height");
             Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
                 "Leaf");
             Assert.AreEqual( 1.25f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
                 "Seed");
+            Assert.AreEqual( 2.5f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
+                "EnergyStore");
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(plant).Value, "stem Scale");
             

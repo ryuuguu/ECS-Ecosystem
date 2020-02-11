@@ -491,8 +491,7 @@ namespace EcoSim {
                 var petal3 = ecb.Instantiate(index,prefabPetalEntity);
                 var petal4 = ecb.Instantiate(index,prefabPetalEntity);
                 var petal5 = ecb.Instantiate(index,prefabPetalEntity);
-                
-                
+
                 var pos = txAutotrophSprout.location;
                 
                 var pollen = ecb.Instantiate(index,prefabPollenEntity);
@@ -530,7 +529,8 @@ namespace EcoSim {
                     petal2 = petal2,
                     petal3 = petal3,
                     petal4 = petal4,
-                    petal5 = petal5
+                    petal5 = petal5,
+                    pollen = pollen
                 });
                 ecb.AddComponent(index,sprout, new Scale{Value = 1});
                 ecb.SetComponent<RandomComponent>(index,sprout,new RandomComponent()
@@ -602,6 +602,8 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophPetalMeshFlag>(),
                 ComponentType.ReadOnly<Prefab>()
             ).ToEntityArray(Allocator.TempJob);
+
+            var jobDeps = inputDeps;
             if (prefabArray.Length > 0) {
                 prefabEntity = prefabArray[0];
                 prefabPollenEntity = prefabPollenArray[0];
@@ -617,17 +619,15 @@ namespace EcoSim {
                 JobHandle jobHandle = job.Schedule(m_Group,inputDeps);
                     //Schedule(m_Group, inputDeps);
                 m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
-                prefabArray.Dispose();
-                //prefabLeafArray.Dispose();
-                prefabPetalArray.Dispose();
+                
                 jobHandle.Complete();
-                return jobHandle;
+                jobDeps =  jobHandle;
             }
             prefabArray.Dispose();
             prefabPollenArray.Dispose();
             prefabPetalArray.Dispose();
             
-            return inputDeps;
+            return jobDeps;
         }
     }
     
