@@ -298,7 +298,8 @@ namespace EcoSim {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
-                                Radius = math.max(0.01f,txAutotrophPhenotype.leaf* txAutotrophConsts.leafShadeRadiusMultiplier),
+                                Radius = math.max(txAutotrophConsts.minShadeRadius,
+                                    txAutotrophPhenotype.leaf)* txAutotrophConsts.leafShadeRadiusMultiplier
                             }, new  CollisionFilter{BelongsTo = 1,CollidesWith = 1,GroupIndex = 0},
                             new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
@@ -457,7 +458,6 @@ namespace EcoSim {
 
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             
-            
             //this could be set once per environment run
             NativeArray<Entity> prefabArray = GetEntityQuery(
                 ComponentType.ReadOnly<TxAutotroph>(),
@@ -595,10 +595,7 @@ namespace EcoSim {
                         
                         ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
-
-
-
-
+                        
                         var chrome1AB = txAutotrophChrome1AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
                             chrome1AB.ValueA[i] = Mutate(chrome1AB.ValueA[i], ref randomComponent.random
@@ -612,11 +609,7 @@ namespace EcoSim {
                         
                         ecb.AddComponent(index, e , txCG);
                         
-                        
                     }
-                    
-                    
-                    
                 }
             }
         }

@@ -69,6 +69,8 @@ public class TriggerLeafSystem : JobComponentSystem {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
         
+        [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
+        
         public NativeHashMap<Entity, float> shadeDict;
         
         // need entity a to be lower than entity B
@@ -79,6 +81,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         // r
         
         public void Execute(TriggerEvent triggerEvent) {
+            var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
             Entity e;
@@ -95,9 +98,14 @@ public class TriggerLeafSystem : JobComponentSystem {
                 eOther = eB;
             }
             
+            var l0 = math.max(txAutotrophConsts.minShadeRadius,
+                         txAutotrophPhenotype[e].leaf)* txAutotrophConsts.leafShadeRadiusMultiplier;
+            var l1 = math.max(txAutotrophConsts.minShadeRadius,
+                         txAutotrophPhenotype[eOther].leaf)* txAutotrophConsts.leafShadeRadiusMultiplier;
+
             var dSqr = math.distancesq(translations[e].Value, translations[eOther].Value);
-            var r0 = math.max(txAutotrophPhenotype[e].leaf, txAutotrophPhenotype[eOther].leaf);
-            var r1 = math.min(txAutotrophPhenotype[e].leaf, txAutotrophPhenotype[eOther].leaf);
+            var r0 = math.max(l0, l1);
+            var r1 = math.min(l0, l1);
             var rSub = r0 - r1;
             var minD = rSub * rSub;
             var num = dSqr - minD;
@@ -157,18 +165,12 @@ public class TriggerLeafSystem : JobComponentSystem {
         {
             translations = GetComponentDataFromEntity<Translation>(),
             txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
+            environmentSettings = Environment.environmentSettings, 
             shadeDict = shadeDict
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
         makeShadePairsJobHandle.Complete();
         
         
-        /*
-        if (shadePairs.Length != 0) { 
-            Debug.Log("Count Triggers: " + UnityEngine.Time.frameCount + " : " +shadePairs.Length);
-           // Debug.Log("T: " + shadePairs[0].translationA + " : " + shadePairs[0].translationB +
-           //           " L: " + shadePairs[0].leafA + " : " + shadePairs[0].leafB + " S: "+ shadePairs[0].shade);
-        }
-        */
         
         JobHandle addShadeJobHandle = new AddShade
         {

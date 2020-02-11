@@ -124,12 +124,15 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float seedDivisor;
         [FormerlySerializedAs("LeafShadeRadiusMultiplier")] public float leafShadeRadiusMultiplier;
         [FormerlySerializedAs("LeafShadeEffectMultiplier")] public float leafShadeEffectMultiplier;
+        public float minShadeRadius;
         public float pollenRadiusMultiplier;
         public float leafScale;
         public float stemScale;
         public float seedRangeMultiplier;
         public float mutationRate;
         public float mutationRange;
+
+         
 
         public float colorGeneScale; 
 
