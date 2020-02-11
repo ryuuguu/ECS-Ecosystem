@@ -61,6 +61,11 @@ namespace Tests {
             m_Manager.AddComponentData(petal, new Rotation());
             m_Manager.AddComponentData(petal, new MaterialColor());
             
+            var pollenTrigger = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(pollenTrigger, new TxAutotrophPollen());
+            m_Manager.AddComponentData(pollenTrigger, new Prefab());
+            m_Manager.AddComponentData(pollenTrigger, new Translation());
+            
             var es = new Environment.EnvironmentSettings[1]; 
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
 

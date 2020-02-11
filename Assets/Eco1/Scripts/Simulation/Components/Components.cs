@@ -36,6 +36,7 @@ namespace EcoSim {
         public Entity petal3;
         public Entity petal4;
         public Entity petal5;
+        public Entity pollen;
     }
 
 
