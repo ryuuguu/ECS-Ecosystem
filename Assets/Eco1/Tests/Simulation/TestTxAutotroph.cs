@@ -159,8 +159,10 @@ namespace Tests {
                 "Seed");
             Assert.AreEqual( 2.5f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
-            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(plant).Value, "stem Scale");
+            
+            World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
+           
             
             //second pass catches missing m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle)in TxAutotrophGrow
             m_Manager.SetComponentData(plant, new EnergyStore(){Value = 10f});

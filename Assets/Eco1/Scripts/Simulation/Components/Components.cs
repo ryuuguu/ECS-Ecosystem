@@ -7,7 +7,7 @@ namespace EcoSim {
 
     
     #region Misc
-
+    
     public struct RandomComponent : IComponentData {
         public Unity.Mathematics.Random random;
     }
