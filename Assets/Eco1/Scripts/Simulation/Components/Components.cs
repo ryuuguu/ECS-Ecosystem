@@ -23,7 +23,9 @@ namespace EcoSim {
 
 
     public struct Unfertilized : IComponentData {
-        public PhysicsCollider femaleCollider;
+        public PhysicsCollider femaleCollider; //should be moved out
+        public Entity pollen;
+        public Random randoml;
     }
     
     #endregion

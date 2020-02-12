@@ -48,14 +48,9 @@ public class TriggerLeafSystem : JobComponentSystem {
         [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
         
         public NativeHashMap<Entity, float> shadeDict;
-        public NativeHashMap<Entity, Genome> fertilizeDict;
+        public NativeHashMap<Entity, Entity> fertilizeDict;
+        public Unity.Mathematics.Random random;
         
-        // need entity a to be lower than entity B
-        //  need leaf0 to be less than leaf1 
-        // distance squared between translations
-        // max  (r0+r1 )* (r0 + r1)
-        // (R0-R1)*(r0-r1)
-        // r
         
         public void Execute(TriggerEvent triggerEvent) {
             var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
@@ -75,12 +70,10 @@ public class TriggerLeafSystem : JobComponentSystem {
                     e = eA;
                     eOther = eB;
                 }
-
                 var l0 = math.max(txAutotrophConsts.minShadeRadius,
                              txAutotrophPhenotype[e].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
                 var l1 = math.max(txAutotrophConsts.minShadeRadius,
                              txAutotrophPhenotype[eOther].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
-
                 var dSqr = math.distancesq(translations[e].Value, translations[eOther].Value);
                 var r0 = math.max(l0, l1);
                 var r1 = math.min(l0, l1);
@@ -105,6 +98,26 @@ public class TriggerLeafSystem : JobComponentSystem {
                     var rAdd = r0 + r1;
                     var maxD = rAdd * rAdd - minD;
                     shadeDict[e] += (1 - ((maxD - num) / maxD)) * r1;
+                }
+            }
+
+            if (TxAutotrophPollen.Exists(eA) || TxAutotrophPollen.Exists(eB)) {
+                if (TxAutotrophPollen.Exists(eA)) {
+                    eOther = eA;
+                    e = eB;
+                }
+                else {
+                    e = eA;
+                    eOther = eB;
+                }
+
+                if (!fertilizeDict.ContainsKey(e)) {
+                    fertilizeDict[e] = eOther;
+                }
+                else {
+                    if (random.NextBool()) {
+                        fertilizeDict[e] = eOther;
+                    }
                 }
             }
         }
@@ -137,7 +150,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         unfertilizeds.Dispose();
         
         var shadeDict = new NativeHashMap<Entity,float>(shadesCount, Allocator.TempJob);
-        var fertilizeDict = new NativeHashMap<Entity,Genome>(unfertilizedCount, Allocator.TempJob);
+        var fertilizeDict = new NativeHashMap<Entity,Entity>(unfertilizedCount, Allocator.TempJob);
         
         JobHandle makeShadePairsJobHandle = new MakeTriggerDicts
         {
@@ -146,7 +159,8 @@ public class TriggerLeafSystem : JobComponentSystem {
             TxAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>(),
             environmentSettings = Environment.environmentSettings, 
             shadeDict = shadeDict,
-            fertilizeDict = fertilizeDict
+            fertilizeDict = fertilizeDict,
+            random = new Unity.Mathematics.Random(Environment.environmentSettings[0].random.NextUInt())
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
         
         

@@ -75,6 +75,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         //bounds = boundsInput;
         
         random = new Random(environmentSettingsInput.randomSeed);
+        var es = environmentSettings[0];
+        es.random = new Random(random.NextUInt());
+        environmentSettings[0] = es;
         //DebugTerrain();
         InitialPlants();
     }
@@ -119,6 +122,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     [Serializable]
     public struct EnvironmentSettings {
         public uint randomSeed;
+        public Random random;
         public TxAutotrophConsts txAutotrophConsts;
         public EnvironmentConsts environmentConsts;
     }
