@@ -14,7 +14,6 @@ using Collider = UnityEngine.Collider;
 using Material = Unity.Physics.Material;
 using Unity.Rendering;
 
-
 namespace EcoSim {
     
     public class TxAutotrophBehaviour : MonoBehaviour, IConvertGameObjectToEntity, IDeclareReferencedPrefabs {
@@ -198,7 +197,6 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophParts>(),
                 ComponentType.ReadOnly<Translation>()
-                
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -221,8 +219,6 @@ namespace EcoSim {
                           + txAutotrophChrome1W.Value.nrg2Leaf
                           + txAutotrophChrome1W.Value.nrg2Seed 
                           + txAutotrophChrome1W.Value.nrg2Storage;
-                
-                
                 var heightEnergy = energyStore.Value * txAutotrophChrome1W.Value.nrg2Height/sum;
                 var heightGrow  = math.min(heightEnergy, 
                     txAutotrophChrome1W.Value.maxHeight- txAutotrophPhenotype.height );
@@ -342,7 +338,8 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophColorGenome>()
+                ComponentType.ReadOnly<TxAutotrophColorGenome>(),
+                ComponentType.Exclude<Unfertilized>()
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();

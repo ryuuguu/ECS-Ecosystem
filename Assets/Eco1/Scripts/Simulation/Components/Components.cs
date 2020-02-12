@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Physics;
 
 namespace EcoSim {
 
@@ -19,6 +20,12 @@ namespace EcoSim {
     public struct  EnergyStore : IComponentData {
         public float Value;
     }
+
+
+    public struct Unfertilized : IComponentData {
+        public PhysicsCollider femaleCollider;
+    }
+    
     #endregion
     
     #region Taxon Autotroph

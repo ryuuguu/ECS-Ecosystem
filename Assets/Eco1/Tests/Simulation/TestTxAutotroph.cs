@@ -65,10 +65,16 @@ namespace Tests {
             m_Manager.AddComponentData(pollenTrigger, new TxAutotrophPollen());
             m_Manager.AddComponentData(pollenTrigger, new Prefab());
             m_Manager.AddComponentData(pollenTrigger, new Translation());
+            m_Manager.AddComponentData(pollenTrigger, new PhysicsCollider {
+                Value = Unity.Physics.SphereCollider.Create(
+                    new SphereGeometry {
+                        Center = float3.zero,
+                        Radius = 1,
+                    }, CollisionFilter.Default, 
+                    new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
             var es = new Environment.EnvironmentSettings[1]; 
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
-
         }
 
         [TearDown]
@@ -141,7 +147,8 @@ namespace Tests {
                 ComponentType.ReadOnly<EnergyStore>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Scale>(),
-                ComponentType.ReadOnly<Translation>()
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadOnly<PhysicsCollider>()
                 
             ).ToEntityArray(Allocator.TempJob);
 
