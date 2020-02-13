@@ -107,6 +107,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             var entity = em.CreateEntity();
             em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
             em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
+            em.AddComponentData(entity, new Gamete {fertilized = true});
             em.AddComponentData(entity, txAutotrophChrome1Ab);
             em.AddComponentData(entity, txAutotrophChrome1Ab.GetChrome1W());
             em.AddComponentData(entity, new TxAutotrophColorGenome{r2 = colors[i].x*1000});

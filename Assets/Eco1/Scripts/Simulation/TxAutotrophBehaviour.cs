@@ -335,16 +335,20 @@ namespace EcoSim {
         
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
+                ComponentType.ReadOnly<Gamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophColorGenome>()
+                
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
         
-        struct Sprout : IJobForEachWithEntity<RandomComponent, TxAutotrophSprout, TxAutotrophChrome1AB, 
+        struct Sprout : IJobForEachWithEntity<RandomComponent,
+            Gamete,
+            TxAutotrophSprout, TxAutotrophChrome1AB, 
             TxAutotrophChrome1W,TxAutotrophColorGenome> {
             public Entity prefabEntity;
             public Entity prefabPetalEntity;
@@ -354,113 +358,113 @@ namespace EcoSim {
             
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
+                [ReadOnly] ref Gamete gamete,
                 [ReadOnly] ref TxAutotrophSprout txAutotrophSprout,
                 [ReadOnly] ref TxAutotrophChrome1AB txAutotrophChrome1Ab, 
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                 [ReadOnly] ref TxAutotrophColorGenome txAutotrophColorGenome
             ) {
-                
-                
-                var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
-                var sprout = ecb.Instantiate(index,prefabEntity);
-                var petal0 = ecb.Instantiate(index,prefabPetalEntity);
-                var petal1 = ecb.Instantiate(index,prefabPetalEntity);
-                var petal2 = ecb.Instantiate(index,prefabPetalEntity);
-                var petal3 = ecb.Instantiate(index,prefabPetalEntity);
-                var petal4 = ecb.Instantiate(index,prefabPetalEntity);
-                var petal5 = ecb.Instantiate(index,prefabPetalEntity);
+                 {
+                    var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
+                    var sprout = ecb.Instantiate(index, prefabEntity);
+                    var petal0 = ecb.Instantiate(index, prefabPetalEntity);
+                    var petal1 = ecb.Instantiate(index, prefabPetalEntity);
+                    var petal2 = ecb.Instantiate(index, prefabPetalEntity);
+                    var petal3 = ecb.Instantiate(index, prefabPetalEntity);
+                    var petal4 = ecb.Instantiate(index, prefabPetalEntity);
+                    var petal5 = ecb.Instantiate(index, prefabPetalEntity);
 
-                var pos = txAutotrophSprout.location;
-                
-                var pollen = ecb.Instantiate(index,prefabPollenEntity);
-                ecb.SetComponent(index,pollen, new Translation(){Value = pos});
-                ecb.SetComponent(index,pollen, new TxAutotrophPollen(){plant = sprout });
-                
-                ecb.SetComponent(index,sprout, new Translation(){Value = pos});
-                
-                ecb.SetComponent(index,petal0, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal0, new Scale{Value = 1});
-                
-                ecb.SetComponent(index,petal1, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal1, new Scale{Value = 1});
-                ecb.SetComponent(index, petal1, new Rotation {Value = quaternion.Euler(0,math.PI/3,0)});
-                
-                ecb.SetComponent(index,petal2, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal2, new Scale{Value = 1});
-                ecb.SetComponent(index, petal2, new Rotation {Value = quaternion.Euler(0,2*math.PI/3,0)});
-                
-                ecb.SetComponent(index,petal3, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal3, new Scale{Value = 1});
-                ecb.SetComponent(index, petal3, new Rotation {Value = quaternion.Euler(0,3*math.PI/3,0)});
-                
-                ecb.SetComponent(index,petal4, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal4, new Scale{Value = 1});
-                ecb.SetComponent(index, petal4, new Rotation {Value = quaternion.Euler(0,4*math.PI/3,0)});
-                
-                ecb.SetComponent(index,petal5, new Translation(){Value = pos + new float3(0,0.9f,0)});
-                ecb.AddComponent(index,petal5, new Scale{Value = 1});
-                ecb.SetComponent(index, petal5, new Rotation {Value = quaternion.Euler(0,5*math.PI/3,0)});
-                
-                ecb.SetComponent(index,sprout,new TxAutotrophParts {
-                    petal0 = petal0,
-                    petal1 = petal1,
-                    petal2 = petal2,
-                    petal3 = petal3,
-                    petal4 = petal4,
-                    petal5 = petal5,
-                    pollen = pollen
-                });
-                ecb.AddComponent(index,sprout, new Scale{Value = 1});
-                ecb.SetComponent<RandomComponent>(index,sprout,new RandomComponent()
-                    {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
-                ecb.SetComponent(index,sprout, txAutotrophChrome1Ab.Copy());
-                ecb.SetComponent(index,sprout, new TxAutotrophChrome1W{Value = txAutotrophChrome1W.Value.Copy()});
-                ecb.SetComponent(index,sprout, new TxAutotrophColorGenome(){
-                    r0 = txAutotrophColorGenome.r0,
-                    g0 = txAutotrophColorGenome.g0,
-                    b0 = txAutotrophColorGenome.b0,
-                    r1 = txAutotrophColorGenome.r1,
-                    g1 = txAutotrophColorGenome.g1,
-                    b1 = txAutotrophColorGenome.b1,
-                    r2 = txAutotrophColorGenome.r2,
-                    g2 = txAutotrophColorGenome.g2,
-                    b2 = txAutotrophColorGenome.b2,
-                    dr0 = txAutotrophColorGenome.dr0,
-                    dg0 = txAutotrophColorGenome.dg0,
-                    db0 = txAutotrophColorGenome.db0,
-                    dr1 = txAutotrophColorGenome.dr1,
-                    dg1 = txAutotrophColorGenome.dg1,
-                    db1 = txAutotrophColorGenome.db1,
-                    dr2 = txAutotrophColorGenome.dr2,
-                    dg2 = txAutotrophColorGenome.dg2,
-                    db2 = txAutotrophColorGenome.db2
+                    var pos = txAutotrophSprout.location;
+
+                    var pollen = ecb.Instantiate(index, prefabPollenEntity);
+                    ecb.SetComponent(index, pollen, new Translation() {Value = pos});
+                    ecb.SetComponent(index, pollen, new TxAutotrophPollen() {plant = sprout});
+
+                    ecb.SetComponent(index, sprout, new Translation() {Value = pos});
+
+                    ecb.SetComponent(index, petal0, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal0, new Scale {Value = 1});
+
+                    ecb.SetComponent(index, petal1, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal1, new Scale {Value = 1});
+                    ecb.SetComponent(index, petal1, new Rotation {Value = quaternion.Euler(0, math.PI / 3, 0)});
+
+                    ecb.SetComponent(index, petal2, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal2, new Scale {Value = 1});
+                    ecb.SetComponent(index, petal2, new Rotation {Value = quaternion.Euler(0, 2 * math.PI / 3, 0)});
+
+                    ecb.SetComponent(index, petal3, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal3, new Scale {Value = 1});
+                    ecb.SetComponent(index, petal3, new Rotation {Value = quaternion.Euler(0, 3 * math.PI / 3, 0)});
+
+                    ecb.SetComponent(index, petal4, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal4, new Scale {Value = 1});
+                    ecb.SetComponent(index, petal4, new Rotation {Value = quaternion.Euler(0, 4 * math.PI / 3, 0)});
+
+                    ecb.SetComponent(index, petal5, new Translation() {Value = pos + new float3(0, 0.9f, 0)});
+                    ecb.AddComponent(index, petal5, new Scale {Value = 1});
+                    ecb.SetComponent(index, petal5, new Rotation {Value = quaternion.Euler(0, 5 * math.PI / 3, 0)});
+
+                    ecb.SetComponent(index, sprout, new TxAutotrophParts {
+                        petal0 = petal0,
+                        petal1 = petal1,
+                        petal2 = petal2,
+                        petal3 = petal3,
+                        petal4 = petal4,
+                        petal5 = petal5,
+                        pollen = pollen
+                    });
+                    ecb.AddComponent(index, sprout, new Scale {Value = 1});
+                    ecb.SetComponent<RandomComponent>(index, sprout, new RandomComponent()
+                        {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
+                    ecb.SetComponent(index, sprout, txAutotrophChrome1Ab.Copy());
+                    ecb.SetComponent(index, sprout, new TxAutotrophChrome1W {Value = txAutotrophChrome1W.Value.Copy()});
+                    ecb.SetComponent(index, sprout, new TxAutotrophColorGenome() {
+                            r0 = txAutotrophColorGenome.r0,
+                            g0 = txAutotrophColorGenome.g0,
+                            b0 = txAutotrophColorGenome.b0,
+                            r1 = txAutotrophColorGenome.r1,
+                            g1 = txAutotrophColorGenome.g1,
+                            b1 = txAutotrophColorGenome.b1,
+                            r2 = txAutotrophColorGenome.r2,
+                            g2 = txAutotrophColorGenome.g2,
+                            b2 = txAutotrophColorGenome.b2,
+                            dr0 = txAutotrophColorGenome.dr0,
+                            dg0 = txAutotrophColorGenome.dg0,
+                            db0 = txAutotrophColorGenome.db0,
+                            dr1 = txAutotrophColorGenome.dr1,
+                            dg1 = txAutotrophColorGenome.dg1,
+                            db1 = txAutotrophColorGenome.db1,
+                            dr2 = txAutotrophColorGenome.dr2,
+                            dg2 = txAutotrophColorGenome.dg2,
+                            db2 = txAutotrophColorGenome.db2
+                        }
+                    );
+
+                    float Normalize(float cg) {
+                        return (cg + colorGeneScale / 2) / colorGeneScale;
                     }
-                );
 
-                float Normalize(float cg) {
-                    return (cg + colorGeneScale / 2) / colorGeneScale;
+                    var nr0 = Normalize(txAutotrophColorGenome.r0);
+                    var ng0 = Normalize(txAutotrophColorGenome.g0);
+                    var nb0 = Normalize(txAutotrophColorGenome.b0);
+                    var nr1 = Normalize(txAutotrophColorGenome.r1);
+                    var ng1 = Normalize(txAutotrophColorGenome.g1);
+                    var nb1 = Normalize(txAutotrophColorGenome.b1);
+                    var nr2 = Normalize(txAutotrophColorGenome.r2);
+                    var ng2 = Normalize(txAutotrophColorGenome.g2);
+                    var nb2 = Normalize(txAutotrophColorGenome.b2);
+                    var baseC = Normalize(0);
+
+                    ecb.SetComponent(index, sprout, new EnergyStore {Value = txAutotrophSprout.energy});
+                    ecb.DestroyEntity(index, entity);
+                    ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
+                    ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
+                    ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
+                    ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
+                    ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
+                    ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
                 }
-
-                var nr0 = Normalize(txAutotrophColorGenome.r0 );
-                var ng0 = Normalize(txAutotrophColorGenome.g0 );
-                var nb0 = Normalize(txAutotrophColorGenome.b0 );
-                var nr1 = Normalize(txAutotrophColorGenome.r1 );
-                var ng1 = Normalize(txAutotrophColorGenome.g1 );
-                var nb1 = Normalize(txAutotrophColorGenome.b1 );
-                var nr2 = Normalize(txAutotrophColorGenome.r2 );
-                var ng2 = Normalize(txAutotrophColorGenome.g2 );
-                var nb2 = Normalize(txAutotrophColorGenome.b2 );
-                var baseC =  Normalize(0);
-                
-                ecb.SetComponent(index,sprout,new  EnergyStore{Value =txAutotrophSprout.energy});
-                ecb.DestroyEntity(index,entity);
-                ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(baseC,baseC,baseC ,1)});
-                ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
-                ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(baseC,baseC,baseC ,1)});
-                ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
-                ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC,baseC ,baseC ,1)});
-                ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nr2 ,ng2,nb2 ,1)});
-
             }
         }
 
@@ -627,9 +631,7 @@ namespace EcoSim {
                         var chrome1W = chrome1AB.GetChrome1W();
                         ecb.AddComponent(index,e,chrome1AB);
                         ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
-                        
                         ecb.AddComponent(index, e , txCG);
-                        
                     }
                 }
             }
@@ -653,7 +655,6 @@ namespace EcoSim {
             jobHandle.Complete();
             prefabSeedArray.Dispose();
             return jobHandle;
-            
         }
     }
 
