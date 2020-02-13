@@ -359,6 +359,8 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                 [ReadOnly] ref TxAutotrophColorGenome txAutotrophColorGenome
             ) {
+                
+                
                 var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
                 var sprout = ecb.Instantiate(index,prefabEntity);
                 var petal0 = ecb.Instantiate(index,prefabPetalEntity);

@@ -23,6 +23,7 @@ public class TriggerLeafSystem : JobComponentSystem {
     StepPhysicsWorld m_StepPhysicsWorldSystem;
     
     private EntityQuery m_GroupShade;
+    private EntityQuery m_GroupGamete;
 
     struct Genome {
         public TxAutotrophChrome1AB txAutotrophChrome1Ab; 
@@ -35,6 +36,10 @@ public class TriggerLeafSystem : JobComponentSystem {
         m_BuildPhysicsWorldSystem = World.GetOrCreateSystem<BuildPhysicsWorld>();
         m_StepPhysicsWorldSystem = World.GetOrCreateSystem<StepPhysicsWorld>();
         m_GroupShade = GetEntityQuery(ComponentType.ReadWrite<Shade>());
+        m_GroupGamete = GetEntityQuery(
+            ComponentType.ReadWrite<Gamete>(),
+            ComponentType.ReadOnly<TxAutotroph>()
+            );
         
     }
 
@@ -136,11 +141,14 @@ public class TriggerLeafSystem : JobComponentSystem {
         }
     }
     
-    struct AutotrophFertilize : IJobForEachWithEntity<Shade> {
+    struct AutotrophFertilize : IJobForEachWithEntity<Gamete> {
         [ReadOnly] public NativeHashMap<Entity, Entity> fertilizeDict;
 
-        public void Execute(Entity entity, int index, ref Shade shade) {
-            
+        public void Execute(Entity entity, int index, ref Gamete gamete) {
+            if (fertilizeDict.ContainsKey(entity)) {
+                gamete.fertilized = true;
+                gamete.pollen = fertilizeDict[entity];
+            }
         }
     }
     
@@ -152,7 +160,9 @@ public class TriggerLeafSystem : JobComponentSystem {
         var shadesCount = shades.Length;
         shades.Dispose();
         
-        var unfertilizeds = GetEntityQuery(ComponentType.ReadOnly<Shade>())
+        var unfertilizeds = GetEntityQuery(ComponentType.ReadOnly<Gamete>(),
+                ComponentType.ReadOnly<TxAutotroph>()
+                )
             .ToEntityArray(Allocator.TempJob);
         var unfertilizedCount = unfertilizeds.Length;
         unfertilizeds.Dispose();
@@ -171,12 +181,13 @@ public class TriggerLeafSystem : JobComponentSystem {
             random = new Unity.Mathematics.Random(Environment.environmentSettings[0].random.NextUInt())
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
         
+        makeShadePairsJobHandle.Complete();
         
         
-        
-        
-        
-        
+        JobHandle  autotrophFertilize = new AutotrophFertilize()
+        {
+            fertilizeDict =fertilizeDict,
+        }.Schedule(m_GroupGamete, makeShadePairsJobHandle);
         
         JobHandle addShadeJobHandle = new AddShade
         {
@@ -186,8 +197,9 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         
         
-        makeShadePairsJobHandle.Complete();
+        
         addShadeJobHandle.Complete();
+        autotrophFertilize.Complete();
         shadeDict.Dispose();
         fertilizeDict.Dispose();
         
