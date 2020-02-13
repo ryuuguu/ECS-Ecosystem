@@ -537,7 +537,7 @@ namespace EcoSim {
 
         struct MakeSprout : IJobForEachWithEntity< TxAutotrophPhenotype,RandomComponent, TxAutotrophChrome1AB,
             TxAutotrophChrome1W, TxAutotrophColorGenome,Translation> {
-            public NativeArray<Entity> prefabSeedArray;
+            [ReadOnly] public NativeArray<Entity> prefabSeedArray;
            
             
             public EntityCommandBuffer.Concurrent ecb;
