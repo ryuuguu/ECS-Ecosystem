@@ -338,8 +338,7 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophColorGenome>(),
-                ComponentType.Exclude<Unfertilized>()
+                ComponentType.ReadOnly<TxAutotrophColorGenome>()
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -513,8 +512,12 @@ namespace EcoSim {
     public class TxAutotrophMakeSproutSystem : JobComponentSystem {
         EntityQuery m_Group;
         protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
+        NativeArray<Entity> prefabSeedArray;
+        
         
         protected override void OnCreate() {
+           
+            
             m_Group = GetEntityQuery(
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
                 ComponentType.ReadWrite<RandomComponent>(),
@@ -527,8 +530,15 @@ namespace EcoSim {
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
 
+        protected override void OnDestroy() {
+            base.OnDestroy();
+            //prefabSeedArray.Dispose();
+        }
+
         struct MakeSprout : IJobForEachWithEntity< TxAutotrophPhenotype,RandomComponent, TxAutotrophChrome1AB,
             TxAutotrophChrome1W, TxAutotrophColorGenome,Translation> {
+            public NativeArray<Entity> prefabSeedArray;
+           
             
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
@@ -574,7 +584,9 @@ namespace EcoSim {
                         // do not know how to get height scale from terrain
                         var height =heightScale*  Environment.TerrainValue(location,terrainHeight,bounds);
                         location.y = height;
-                        var e = ecb.CreateEntity(index);
+                        //var e = ecb.CreateEntity(index);
+                        var e = ecb.Instantiate(index, prefabSeedArray[0]);
+                        ecb.AddComponent<Gamete>(index, e, new Gamete());
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophChrome1W.Value.seedSize,
                             location = location
@@ -623,7 +635,13 @@ namespace EcoSim {
        
         protected override JobHandle OnUpdate(JobHandle inputDeps) {
             var ecb = m_EndSimulationEcbSystem.CreateCommandBuffer().ToConcurrent();
+            prefabSeedArray = GetEntityQuery(
+                ComponentType.ReadOnly<TxAutotrophSeed>(),
+                ComponentType.ReadOnly<Prefab>()
+            ).ToEntityArray(Allocator.TempJob); 
+            
             MakeSprout job = new MakeSprout() {
+                prefabSeedArray = prefabSeedArray,
                 environmentSettings = Environment.environmentSettings,
                 terrainHeight = Environment.terrainHeight,
                 ecb=ecb
@@ -631,6 +649,7 @@ namespace EcoSim {
             JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
             m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
             jobHandle.Complete();
+            prefabSeedArray.Dispose();
             return jobHandle;
             
         }

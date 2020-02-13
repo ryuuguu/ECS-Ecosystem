@@ -136,6 +136,14 @@ public class TriggerLeafSystem : JobComponentSystem {
         }
     }
     
+    struct AutotrophFertilize : IJobForEachWithEntity<Shade> {
+        [ReadOnly] public NativeHashMap<Entity, Entity> fertilizeDict;
+
+        public void Execute(Entity entity, int index, ref Shade shade) {
+            
+        }
+    }
+    
     protected override JobHandle OnUpdate(JobHandle inputDeps) {
         ComponentDataFromEntity<Translation> translations = GetComponentDataFromEntity<Translation>();
         

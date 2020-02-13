@@ -73,6 +73,21 @@ namespace Tests {
                     }, CollisionFilter.Default, 
                     new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
+            var seed = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(pollenTrigger, new TxAutotrophSeed());
+            m_Manager.AddComponentData(pollenTrigger, new Gamete());
+            m_Manager.AddComponentData(pollenTrigger, new Prefab());
+            m_Manager.AddComponentData(pollenTrigger, new Translation());
+            m_Manager.AddComponentData(pollenTrigger, new PhysicsCollider {
+                Value = Unity.Physics.SphereCollider.Create(
+                    new SphereGeometry {
+                        Center = float3.zero,
+                        Radius = 1,
+                    }, CollisionFilter.Default, 
+                    new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
+
+            
+            
             var es = new Environment.EnvironmentSettings[1]; 
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
         }
