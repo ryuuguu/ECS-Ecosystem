@@ -105,6 +105,9 @@ public class TriggerLeafSystem : JobComponentSystem {
                     shadeDict[e] += (1 - ((maxD - num) / maxD)) * r1;
                 }
             }
+            else {
+                fertilizeDict[eA] = eB;
+            }
 
             if (TxAutotrophPollen.Exists(eA) || TxAutotrophPollen.Exists(eB)) {
                 if (TxAutotrophPollen.Exists(eA)) {
@@ -146,7 +149,7 @@ public class TriggerLeafSystem : JobComponentSystem {
 
         public void Execute(Entity entity, int index, ref Gamete gamete) {
             if (fertilizeDict.ContainsKey(entity)) {
-                gamete.fertilized = true;
+                gamete.isFertilized = true;
                 gamete.pollen = fertilizeDict[entity];
             }
         }
@@ -168,7 +171,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         unfertilizeds.Dispose();
         
         var shadeDict = new NativeHashMap<Entity,float>(shadesCount, Allocator.TempJob);
-        var fertilizeDict = new NativeHashMap<Entity,Entity>(unfertilizedCount, Allocator.TempJob);
+        var fertilizeDict = new NativeHashMap<Entity,Entity>(100+unfertilizedCount, Allocator.TempJob);
         
         JobHandle makeShadePairsJobHandle = new MakeTriggerDicts
         {
@@ -183,6 +186,8 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         makeShadePairsJobHandle.Complete();
         
+        Debug.Log("ShadeDict: " + shadeDict.Length);
+        Debug.Log("FertilizeDict: " + fertilizeDict.Length);
         
         JobHandle  autotrophFertilize = new AutotrophFertilize()
         {

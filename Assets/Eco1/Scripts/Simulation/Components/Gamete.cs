@@ -8,5 +8,5 @@ using Unity.Physics;
 [GenerateAuthoringComponent]
 public struct Gamete : IComponentData {
     public Entity pollen;
-    public bool fertilized;
+    public bool isFertilized;
 }

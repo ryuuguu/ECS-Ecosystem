@@ -364,6 +364,8 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                 [ReadOnly] ref TxAutotrophColorGenome txAutotrophColorGenome
             ) {
+                
+                 //if(gamete.isFertilized)
                  {
                     var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
                     var sprout = ecb.Instantiate(index, prefabEntity);
@@ -592,6 +594,7 @@ namespace EcoSim {
                         location.y = height;
                         //var e = ecb.CreateEntity(index);
                         var e = ecb.Instantiate(index, prefabSeedArray[0]);
+                        ecb.SetComponent(index,e,new Translation{Value = translation.Value});
                         ecb.AddComponent<Gamete>(index, e, new Gamete());
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophChrome1W.Value.seedSize,
@@ -632,6 +635,7 @@ namespace EcoSim {
                         ecb.AddComponent(index,e,chrome1AB);
                         ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
                         ecb.AddComponent(index, e , txCG);
+                        
                     }
                 }
             }
