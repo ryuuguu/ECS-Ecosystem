@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5685547276326418842}
   - component: {fileID: 5463189615912545516}
   - component: {fileID: 8732800313516599502}
+  - component: {fileID: 6893650059513549110}
   m_Layer: 0
   m_Name: PollenTrigger
   m_TagString: Untagged
@@ -64,9 +65,9 @@ MonoBehaviour:
     y: 0
     z: 0
   m_PrimitiveSize:
-    x: 1
-    y: 1
-    z: 1
+    x: 0.2
+    y: 0.2
+    z: 0.2
   m_PrimitiveOrientation:
     Value:
       x: 0
@@ -74,15 +75,15 @@ MonoBehaviour:
       z: 0
     RotationOrder: 4
   m_Capsule:
-    Height: 1
-    Radius: 0.5
+    Height: 0.2
+    Radius: 0.1
     Axis: 2
   m_Cylinder:
-    Height: 1
-    Radius: 0.5
+    Height: 0.2
+    Radius: 0.1
     Axis: 2
   m_CylinderSideCount: 20
-  m_SphereRadius: 0.5
+  m_SphereRadius: 0.1
   m_MinimumSkinnedVertexWeight: 0.1
   m_ConvexHullGenerationParameters:
     m_SimplificationTolerance: 0.015
@@ -131,3 +132,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4dc9df0671a8460d88affb963e9c4b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  plant: {fileID: 0}
+--- !u!114 &6893650059513549110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 854606966910150956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccea9ea98e38942e0b0938c27ed1903e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MotionType: 1
+  m_Mass: 1
+  m_LinearDamping: 0.01
+  m_AngularDamping: 0.05
+  m_InitialLinearVelocity:
+    x: 0
+    y: 0
+    z: 0
+  m_InitialAngularVelocity:
+    x: 0
+    y: 0
+    z: 0
+  m_GravityFactor: 1
+  m_OverrideDefaultMassDistribution: 0
+  m_CenterOfMass:
+    x: 0
+    y: 0
+    z: 0
+  m_Orientation:
+    Value:
+      x: 0
+      y: 0
+      z: 0
+    RotationOrder: 4
+  m_InertiaTensor:
+    x: 0.4
+    y: 0.4
+    z: 0.4
+  m_CustomTags:
+    Tag00: 0
+    Tag01: 0
+    Tag02: 0
+    Tag03: 0
+    Tag04: 0
+    Tag05: 0
+    Tag06: 0
+    Tag07: 0

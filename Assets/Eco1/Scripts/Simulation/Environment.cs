@@ -110,9 +110,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             em.AddComponentData(entity, new Gamete {isFertilized = true});
             em.AddComponentData(entity, txAutotrophChrome1Ab);
             em.AddComponentData(entity, txAutotrophChrome1Ab.GetChrome1W());
-            em.AddComponentData(entity, new TxAutotrophColorGenome{r2 = colors[i].x*1000});
-            em.AddComponentData(entity, new TxAutotrophColorGenome {b2 = colors[i].y*1000});
-            em.AddComponentData(entity, new TxAutotrophColorGenome {g2 = colors[i].z*1000});
+            em.AddComponentData(entity, new TxAutotrophChrome2{r2 = colors[i].x*1000});
+            em.AddComponentData(entity, new TxAutotrophChrome2 {b2 = colors[i].y*1000});
+            em.AddComponentData(entity, new TxAutotrophChrome2 {g2 = colors[i].z*1000});
         }
     }
     

@@ -52,7 +52,7 @@ namespace Tests {
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1AB());
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
-            m_Manager.AddComponentData(sprout, new  TxAutotrophColorGenome{});
+            m_Manager.AddComponentData(sprout, new  TxAutotrophChrome2{});
             
             var petal = m_Manager.CreateEntity();
             m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
@@ -104,7 +104,7 @@ namespace Tests {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophColorGenome>()
+                ComponentType.ReadOnly<TxAutotrophChrome2>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,presprouts.Length,"Presprouts count");
             presprouts.Dispose();
@@ -116,7 +116,7 @@ namespace Tests {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophColorGenome>()
+                ComponentType.ReadOnly<TxAutotrophChrome2>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(0,sprouts.Length,"Sprouts count");
             sprouts.Dispose();

@@ -27,7 +27,7 @@ public class TriggerLeafSystem : JobComponentSystem {
 
     struct Genome {
         public TxAutotrophChrome1AB txAutotrophChrome1Ab; 
-        public TxAutotrophColorGenome txAutotrophColorGenome; // this will be changed ColorChrome1AB
+        public TxAutotrophChrome2 txAutotrophChrome2; // this will be changed ColorChrome1AB
     }
     
     protected override void OnCreate() {
@@ -38,7 +38,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         m_GroupShade = GetEntityQuery(ComponentType.ReadWrite<Shade>());
         m_GroupGamete = GetEntityQuery(
             ComponentType.ReadWrite<Gamete>(),
-            ComponentType.ReadOnly<TxAutotroph>()
+            ComponentType.ReadOnly<TxAutotrophSeed>()
             );
         
     }
@@ -61,54 +61,12 @@ public class TriggerLeafSystem : JobComponentSystem {
             var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
+            
+            
             Entity e;
             Entity eOther;
-
-            if (txAutotrophPhenotype.Exists(eA)) {
-                var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height > translations[eB].Value.y
-                           + txAutotrophPhenotype[eB].height;
-                if (swap) {
-                    e = eB;
-                    eOther = eA;
-                }
-                else {
-                    e = eA;
-                    eOther = eB;
-                }
-                var l0 = math.max(txAutotrophConsts.minShadeRadius,
-                             txAutotrophPhenotype[e].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
-                var l1 = math.max(txAutotrophConsts.minShadeRadius,
-                             txAutotrophPhenotype[eOther].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
-                var dSqr = math.distancesq(translations[e].Value, translations[eOther].Value);
-                var r0 = math.max(l0, l1);
-                var r1 = math.min(l0, l1);
-                var rSub = r0 - r1;
-                var minD = rSub * rSub;
-                var num = dSqr - minD;
-                if (!shadeDict.ContainsKey(e)) {
-                    if (num <= 0) {
-                        shadeDict[e] = r1;
-                    }
-                    else {
-                        var rAdd = r0 + r1;
-                        var maxD = rAdd * rAdd - minD;
-                        shadeDict[e] = (1 - ((maxD - num) / maxD)) * r1;
-                    }
-                }
-
-                if (num <= 0) {
-                    shadeDict[e] += r1;
-                }
-                else {
-                    var rAdd = r0 + r1;
-                    var maxD = rAdd * rAdd - minD;
-                    shadeDict[e] += (1 - ((maxD - num) / maxD)) * r1;
-                }
-            }
-            else {
-                fertilizeDict[eA] = eB;
-            }
-
+            
+            
             if (TxAutotrophPollen.Exists(eA) || TxAutotrophPollen.Exists(eB)) {
                 if (TxAutotrophPollen.Exists(eA)) {
                     eOther = eA;
@@ -125,6 +83,52 @@ public class TriggerLeafSystem : JobComponentSystem {
                 else {
                     if (random.NextBool()) {
                         fertilizeDict[e] = eOther;
+                    }
+                }
+            }
+            else {
+                if (txAutotrophPhenotype.Exists(eA)) {
+                    var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height > translations[eB].Value.y
+                               + txAutotrophPhenotype[eB].height;
+                    if (swap) {
+                        e = eB;
+                        eOther = eA;
+                    }
+                    else {
+                        e = eA;
+                        eOther = eB;
+                    }
+
+                    var l0 = math.max(txAutotrophConsts.minShadeRadius,
+                                 txAutotrophPhenotype[e].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
+                    var l1 = math.max(txAutotrophConsts.minShadeRadius,
+                                 txAutotrophPhenotype[eOther].leaf) * txAutotrophConsts.leafShadeRadiusMultiplier;
+                    var dSqr = math.distancesq(translations[e].Value, translations[eOther].Value);
+                    var r0 = math.max(l0, l1);
+                    var r1 = math.min(l0, l1);
+                    var rSub = r0 - r1;
+                    var minD = rSub * rSub;
+                    var num = dSqr - minD;
+                    if (!shadeDict.ContainsKey(e)) {
+                        if (num <= 0) {
+                            shadeDict[e] = r1;
+                        }
+                        else {
+                            var rAdd = r0 + r1;
+                            var maxD = rAdd * rAdd - minD;
+                            shadeDict[e] = (1 - ((maxD - num) / maxD)) * r1;
+                        }
+                    }
+                    else {
+
+                        if (num <= 0) {
+                            shadeDict[e] += r1;
+                        }
+                        else {
+                            var rAdd = r0 + r1;
+                            var maxD = rAdd * rAdd - minD;
+                            shadeDict[e] += (1 - ((maxD - num) / maxD)) * r1;
+                        }
                     }
                 }
             }
@@ -186,8 +190,16 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         makeShadePairsJobHandle.Complete();
         
-        Debug.Log("ShadeDict: " + shadeDict.Length);
+        /*
+        //Debug.Log("ShadeDict: " + shadeDict.Length);
         Debug.Log("FertilizeDict: " + fertilizeDict.Length);
+        var keys =  fertilizeDict.GetKeyArray(Allocator.Persistent);
+        foreach (var c in keys ) {
+            Debug.Log("fertilizeDict: " + c + " : " + fertilizeDict[c]);
+        }
+
+        keys.Dispose();
+        */
         
         JobHandle  autotrophFertilize = new AutotrophFertilize()
         {
@@ -198,11 +210,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         {
             shadeDict = shadeDict,
         }.Schedule(m_GroupShade, makeShadePairsJobHandle);
-        
-        
-        
-        
-        
+
         addShadeJobHandle.Complete();
         autotrophFertilize.Complete();
         shadeDict.Dispose();

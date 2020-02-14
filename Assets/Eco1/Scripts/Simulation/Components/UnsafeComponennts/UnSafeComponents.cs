@@ -5,19 +5,7 @@ using Unity.Mathematics;
 using UnityEngine.Assertions.Comparers;
 using UnityEngine.UIElements;
 
-/* 
-[System.Serializable]
-public struct TxAutotrophGenome : IComponentData {
-    public float nrg2Leaf; 
-    public float nrg2Seed;
-    public float nrg2Height;
-    public float nrg2Storage;
-    public float maxLeaf;  //max leaf energy
-    public float maxHeight; //max Height
-    public float seedSize;  //Size of one seed
-    public float ageRate;
-}
-*/
+
 [System.Serializable]
 public struct TxAutotrophChrome1AB : IComponentData{
     public TxAutotrophChrome1 ValueA;
@@ -90,9 +78,41 @@ public struct TxAutotrophChrome1 {
         return result;
     }
 }
-    
+   
+
+
 [System.Serializable]
-public struct TxAutotrophColorGenome : IComponentData {
+public struct TxAutotrophChrome2AB : IComponentData{
+    public TxAutotrophChrome2 ValueA;
+    public TxAutotrophChrome2 ValueB;
+
+    public TxAutotrophChrome2W GetChrome1W() {
+        var result = new TxAutotrophChrome2W();
+        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
+            result.Value[i] = (ValueA[i] + ValueB[i])/2;
+        }
+        return result;
+    }
+    
+    public TxAutotrophChrome2AB Copy () {
+        var result = new TxAutotrophChrome2AB();
+        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
+            result.ValueA[i] = ValueA[i];
+            result.ValueB[i] = ValueB[i];
+        }
+        return result;
+    }
+
+}
+
+[System.Serializable]
+public struct TxAutotrophChrome2W : IComponentData{
+    public TxAutotrophChrome2 Value;
+}
+
+
+[System.Serializable]
+public struct TxAutotrophChrome2 : IComponentData {
     public float r0; 
     public float g0;
     public float b0;
@@ -112,6 +132,35 @@ public struct TxAutotrophColorGenome : IComponentData {
     public float dg2;
     public float db2;
         
-        
+    public const int LENGTH = 18;
+    
+    /// <summary>Returns the float element at a specified index.</summary>
+    unsafe public float this[int index]
+    {
+        get
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if ((uint)index >= LENGTH)
+                throw new System.ArgumentException("get index must be between[0...23] was "+ index );
+#endif
+            fixed (TxAutotrophChrome2* array = &this) { return ((float*)array)[index]; }
+        }
+        set
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if ((uint)index >= LENGTH)
+                throw new System.ArgumentException("set index must be between[0...23] was " + index);
+#endif
+            fixed (float* array = &r0) { array[index] = value; }
+        }
+    }
+
+    public TxAutotrophChrome2 Copy() {
+        var result = new TxAutotrophChrome2();
+        for (int i = 0; i < LENGTH; i++) {
+            result[i] = this[i];
+        }
+        return result;
+    }     
 }
 
