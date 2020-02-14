@@ -337,7 +337,7 @@ namespace EcoSim {
         
         protected override void OnCreate() {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
-                ComponentType.ReadOnly<Gamete>(),
+                ComponentType.ReadOnly<TxAutotrophGamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
@@ -348,7 +348,7 @@ namespace EcoSim {
         }
         
         struct Sprout : IJobForEachWithEntity<RandomComponent,
-            Gamete,
+            TxAutotrophGamete,
             TxAutotrophSprout, TxAutotrophChrome1AB, 
             TxAutotrophChrome1W,TxAutotrophChrome2> {
             public Entity prefabEntity;
@@ -361,14 +361,14 @@ namespace EcoSim {
 
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
-                [ReadOnly] ref Gamete gamete,
+                [ReadOnly] ref TxAutotrophGamete txAutotrophGamete,
                 [ReadOnly] ref TxAutotrophSprout txAutotrophSprout,
                 [ReadOnly] ref TxAutotrophChrome1AB txAutotrophChrome1Ab, 
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
                 [ReadOnly] ref TxAutotrophChrome2 txAutotrophChrome2
             ) {
                 
-                 if(gamete.isFertilized) 
+                 if(txAutotrophGamete.isFertilized) 
                  {
                     var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
                     var sprout = ecb.Instantiate(index, prefabEntity);
@@ -434,7 +434,7 @@ namespace EcoSim {
 
 
                     var chrome1A = txAutotrophChrome1Ab.Crossover(ref randomComponent.random);
-                    var pollenChrome = txAutotrophChrome1ABCD[txAutotrophPollenCD[gamete.pollen].plant];
+                    var pollenChrome =txAutotrophGamete.txAutotrophChrome1AB;
                     var chrome1B = pollenChrome.Crossover(ref randomComponent.random);
                     var chrome1AB = new TxAutotrophChrome1AB {ValueA = chrome1A, ValueB = chrome1B};
                     
@@ -588,7 +588,7 @@ namespace EcoSim {
                         //var e = ecb.CreateEntity(index);
                         var e = ecb.Instantiate(index, prefabSeedArray[0]);
                         ecb.SetComponent(index,e,new Translation{Value = translation.Value});
-                        ecb.AddComponent<Gamete>(index, e, new Gamete());
+                        ecb.AddComponent<TxAutotrophGamete>(index, e, new TxAutotrophGamete());
                         ecb.AddComponent<TxAutotrophSprout>(index, e, new TxAutotrophSprout() {
                             energy = txAutotrophChrome1W.Value.seedSize,
                             location = location

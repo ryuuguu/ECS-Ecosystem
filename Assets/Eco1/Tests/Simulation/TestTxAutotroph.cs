@@ -54,7 +54,7 @@ namespace Tests {
             
             sprout = m_Manager.CreateEntity();
             m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
-            m_Manager.AddComponentData(sprout, new Gamete(){isFertilized = true,pollen = pollenTrigger});
+            m_Manager.AddComponentData(sprout, new TxAutotrophGamete(){isFertilized = true});
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1AB());
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
@@ -84,7 +84,7 @@ namespace Tests {
             
             var seed = m_Manager.CreateEntity();
             m_Manager.AddComponentData(seed, new TxAutotrophSeed());
-            m_Manager.AddComponentData(seed, new Gamete(){isFertilized = true, pollen = pollenTrigger});
+            m_Manager.AddComponentData(seed, new TxAutotrophGamete(){isFertilized = true});
             m_Manager.AddComponentData(seed, new Prefab());
             m_Manager.AddComponentData(seed, new Translation());
             m_Manager.AddComponentData(seed, new PhysicsCollider {
@@ -108,7 +108,7 @@ namespace Tests {
         [Test]
         public void Tx_Sprout_Test() {
             var presprouts = m_Manager.CreateEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
-                ComponentType.ReadOnly<Gamete>(),
+                ComponentType.ReadOnly<TxAutotrophGamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
@@ -121,7 +121,7 @@ namespace Tests {
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             
             var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
-                ComponentType.ReadOnly<Gamete>(),
+                ComponentType.ReadOnly<TxAutotrophGamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),

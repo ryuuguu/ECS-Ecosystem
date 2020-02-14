@@ -37,7 +37,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         m_StepPhysicsWorldSystem = World.GetOrCreateSystem<StepPhysicsWorld>();
         m_GroupShade = GetEntityQuery(ComponentType.ReadWrite<Shade>());
         m_GroupGamete = GetEntityQuery(
-            ComponentType.ReadWrite<Gamete>(),
+            ComponentType.ReadWrite<TxAutotrophGamete>(),
             ComponentType.ReadOnly<TxAutotrophSeed>()
             );
         
@@ -148,13 +148,19 @@ public class TriggerLeafSystem : JobComponentSystem {
         }
     }
     
-    struct AutotrophFertilize : IJobForEachWithEntity<Gamete> {
+    struct AutotrophFertilize : IJobForEachWithEntity<TxAutotrophGamete> {
         [ReadOnly] public NativeHashMap<Entity, Entity> fertilizeDict;
+        [ReadOnly] public ComponentDataFromEntity<TxAutotrophChrome1AB> txAutotrophChrome1AB;
+        [ReadOnly] public ComponentDataFromEntity<TxAutotrophChrome2AB> txAutotrophChrome2AB;
+        [ReadOnly] public ComponentDataFromEntity<TxAutotrophPollen> txAutotrophPollen;
 
-        public void Execute(Entity entity, int index, ref Gamete gamete) {
+        public void Execute(Entity entity, int index, ref TxAutotrophGamete txAutotrophGamete) {
             if (fertilizeDict.ContainsKey(entity)) {
-                gamete.isFertilized = true;
-                gamete.pollen = fertilizeDict[entity];
+                txAutotrophGamete.isFertilized = true;
+                txAutotrophGamete.txAutotrophChrome1AB = 
+                    txAutotrophChrome1AB[ txAutotrophPollen[ fertilizeDict[entity]].plant].Copy();
+                //txAutotrophGamete.txAutotrophChrome2AB = 
+                //    txAutotrophChrome2AB[ txAutotrophPollen[ fertilizeDict[entity]].plant].Copy();
             }
         }
     }
@@ -167,7 +173,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         var shadesCount = shades.Length;
         shades.Dispose();
         
-        var unfertilizeds = GetEntityQuery(ComponentType.ReadOnly<Gamete>(),
+        var unfertilizeds = GetEntityQuery(ComponentType.ReadOnly<TxAutotrophGamete>(),
                 ComponentType.ReadOnly<TxAutotroph>()
                 )
             .ToEntityArray(Allocator.TempJob);
@@ -175,7 +181,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         unfertilizeds.Dispose();
         
         var shadeDict = new NativeHashMap<Entity,float>(shadesCount, Allocator.TempJob);
-        var fertilizeDict = new NativeHashMap<Entity,Entity>(100+unfertilizedCount, Allocator.TempJob);
+        var fertilizeDict = new NativeHashMap<Entity,Entity>(unfertilizedCount, Allocator.TempJob);
         
         JobHandle makeShadePairsJobHandle = new MakeTriggerDicts
         {
@@ -204,6 +210,9 @@ public class TriggerLeafSystem : JobComponentSystem {
         JobHandle  autotrophFertilize = new AutotrophFertilize()
         {
             fertilizeDict =fertilizeDict,
+            txAutotrophChrome1AB = GetComponentDataFromEntity<TxAutotrophChrome1AB>(),
+            txAutotrophChrome2AB = GetComponentDataFromEntity<TxAutotrophChrome2AB>(),
+            txAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>()
         }.Schedule(m_GroupGamete, makeShadePairsJobHandle);
         
         JobHandle addShadeJobHandle = new AddShade
