@@ -429,9 +429,16 @@ namespace EcoSim {
                     ecb.AddComponent(index, sprout, new Scale {Value = 1});
                     ecb.SetComponent<RandomComponent>(index, sprout, new RandomComponent()
                         {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
+
+
+                    var chrome1A = txAutotrophChrome1Ab.Crossover(ref randomComponent.random);
                     
-                    ecb.SetComponent(index, sprout, txAutotrophChrome1Ab.Copy());
-                    ecb.SetComponent(index, sprout,  txAutotrophChrome1Ab.GetChrome1W());
+                    var chrome1B = txAutotrophChrome1Ab.Crossover(ref randomComponent.random);
+                    var chrome1AB = new TxAutotrophChrome1AB {ValueA = chrome1A, ValueB = chrome1B};
+                    
+                    ecb.SetComponent(index, sprout, chrome1AB);
+                    
+                    ecb.SetComponent(index, sprout,  chrome1AB.GetChrome1W());
                     ecb.SetComponent(index, sprout, txAutotrophChrome2.Copy());
 
                     float Normalize(float cg) {
