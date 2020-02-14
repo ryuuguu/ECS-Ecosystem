@@ -430,9 +430,8 @@ namespace EcoSim {
                     ecb.SetComponent<RandomComponent>(index, sprout, new RandomComponent()
                         {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                     
-                    
                     ecb.SetComponent(index, sprout, txAutotrophChrome1Ab.Copy());
-                    ecb.SetComponent(index, sprout, new TxAutotrophChrome1W {Value = txAutotrophChrome1W.Value.Copy()});
+                    ecb.SetComponent(index, sprout,  txAutotrophChrome1Ab.GetChrome1W());
                     ecb.SetComponent(index, sprout, txAutotrophChrome2.Copy());
 
                     float Normalize(float cg) {
@@ -592,10 +591,6 @@ namespace EcoSim {
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                         
                         var txCG = txAutotrophChrome2.Copy();
-                         
-                        
-                        
-                       
                         
                         var chrome1AB = txAutotrophChrome1AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {

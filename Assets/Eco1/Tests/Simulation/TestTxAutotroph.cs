@@ -87,9 +87,6 @@ namespace Tests {
                         Radius = 1,
                     }, CollisionFilter.Default, 
                     new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
-            
-            
-            
             var es = new Environment.EnvironmentSettings[1];
             es[0].txAutotrophConsts.pollenRadiusMultiplier = 1;
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
@@ -142,7 +139,8 @@ namespace Tests {
         [Test]
         public void TxAutotrophGrow_Test() {
             //set Environment & genome 
-            m_Manager.SetComponentData(sprout, new  TxAutotrophChrome1W{ Value = new TxAutotrophChrome1 {
+            
+            var chrome1 = new TxAutotrophChrome1 {
                 nrg2Height = 1,
                 nrg2Leaf = 1,
                 nrg2Seed = 1,
@@ -150,7 +148,13 @@ namespace Tests {
                 seedSize = 4, // not tested yet
                 maxHeight = 5,
                 maxLeaf = 5.5f
-            }});
+            };
+
+
+            m_Manager.SetComponentData(sprout, new TxAutotrophChrome1AB {
+                ValueA = chrome1.Copy(),
+                ValueB = chrome1.Copy()
+            });
            
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.seedDivisor = 2;
