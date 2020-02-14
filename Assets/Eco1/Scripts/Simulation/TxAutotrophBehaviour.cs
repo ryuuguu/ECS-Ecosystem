@@ -356,7 +356,9 @@ namespace EcoSim {
             public Entity prefabPollenEntity;
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
-            
+            [ReadOnly]public ComponentDataFromEntity<TxAutotrophChrome1AB> txAutotrophChrome1ABCD;
+            [ReadOnly]public ComponentDataFromEntity<TxAutotrophPollen> txAutotrophPollenCD;
+
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
                 [ReadOnly] ref Gamete gamete,
@@ -432,8 +434,8 @@ namespace EcoSim {
 
 
                     var chrome1A = txAutotrophChrome1Ab.Crossover(ref randomComponent.random);
-                    
-                    var chrome1B = txAutotrophChrome1Ab.Crossover(ref randomComponent.random);
+                    var pollenChrome = txAutotrophChrome1ABCD[txAutotrophPollenCD[gamete.pollen].plant];
+                    var chrome1B = pollenChrome.Crossover(ref randomComponent.random);
                     var chrome1AB = new TxAutotrophChrome1AB {ValueA = chrome1A, ValueB = chrome1B};
                     
                     ecb.SetComponent(index, sprout, chrome1AB);
@@ -496,7 +498,9 @@ namespace EcoSim {
                     ecb = ecb,
                     prefabEntity = prefabEntity,
                     prefabPollenEntity = prefabPollenEntity,
-                    prefabPetalEntity = prefabPetalEntity
+                    prefabPetalEntity = prefabPetalEntity,
+                    txAutotrophChrome1ABCD = GetComponentDataFromEntity<TxAutotrophChrome1AB>(),
+                    txAutotrophPollenCD  = GetComponentDataFromEntity<TxAutotrophPollen>()
                 };
                 JobHandle jobHandle = job.Schedule(m_Group,inputDeps);
                     //Schedule(m_Group, inputDeps);
@@ -508,7 +512,6 @@ namespace EcoSim {
             prefabArray.Dispose();
             prefabPollenArray.Dispose();
             prefabPetalArray.Dispose();
-            
             return jobDeps;
         }
     }
@@ -520,10 +523,7 @@ namespace EcoSim {
         protected EndSimulationEntityCommandBufferSystem m_EndSimulationEcbSystem;
         NativeArray<Entity> prefabSeedArray;
         
-        
         protected override void OnCreate() {
-           
-            
             m_Group = GetEntityQuery(
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
                 ComponentType.ReadWrite<RandomComponent>(),

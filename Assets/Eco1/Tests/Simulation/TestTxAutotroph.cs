@@ -47,23 +47,21 @@ namespace Tests {
                         }, CollisionFilter.Default, 
                         new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
+            
+            
+            var pollenTrigger = m_Manager.CreateEntity();
+           
+            
             sprout = m_Manager.CreateEntity();
             m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
-            m_Manager.AddComponentData(sprout, new Gamete(){isFertilized = true});
+            m_Manager.AddComponentData(sprout, new Gamete(){isFertilized = true,pollen = pollenTrigger});
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1AB());
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome2{});
             
-            var petal = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
-            m_Manager.AddComponentData(petal, new Prefab());
-            m_Manager.AddComponentData(petal, new Translation());
-            m_Manager.AddComponentData(petal, new Rotation());
-            m_Manager.AddComponentData(petal, new MaterialColor());
             
-            var pollenTrigger = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(pollenTrigger, new TxAutotrophPollen());
+            m_Manager.AddComponentData(pollenTrigger, new TxAutotrophPollen{plant = sprout});
             m_Manager.AddComponentData(pollenTrigger, new Prefab());
             m_Manager.AddComponentData(pollenTrigger, new Translation());
             m_Manager.AddComponentData(pollenTrigger, new PhysicsCollider {
@@ -74,10 +72,19 @@ namespace Tests {
                     }, CollisionFilter.Default, 
                     new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
+            var petal = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(petal, new TxAutotrophPetalMeshFlag());
+            m_Manager.AddComponentData(petal, new Prefab());
+            m_Manager.AddComponentData(petal, new Translation());
+            m_Manager.AddComponentData(petal, new Rotation());
+            m_Manager.AddComponentData(petal, new MaterialColor());
+            
+            
+            
             
             var seed = m_Manager.CreateEntity();
             m_Manager.AddComponentData(seed, new TxAutotrophSeed());
-            m_Manager.AddComponentData(seed, new Gamete(){isFertilized = true});
+            m_Manager.AddComponentData(seed, new Gamete(){isFertilized = true, pollen = pollenTrigger});
             m_Manager.AddComponentData(seed, new Prefab());
             m_Manager.AddComponentData(seed, new Translation());
             m_Manager.AddComponentData(seed, new PhysicsCollider {
