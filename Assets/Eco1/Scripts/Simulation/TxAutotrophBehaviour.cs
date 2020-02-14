@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Collections;
@@ -341,7 +342,6 @@ namespace EcoSim {
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
                 ComponentType.ReadOnly<TxAutotrophChrome2>()
-                
             );
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -366,7 +366,7 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophChrome2 txAutotrophChrome2
             ) {
                 
-                 if(gamete.isFertilized)
+                 if(gamete.isFertilized) 
                  {
                     var colorGeneScale = environmentSettings[0].txAutotrophConsts.colorGeneScale;
                     var sprout = ecb.Instantiate(index, prefabEntity);
@@ -386,9 +386,8 @@ namespace EcoSim {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
-                                Radius = 
-                                 txAutotrophChrome1W.Value.pollenRange*
-                                 environmentSettings[0].txAutotrophConsts.pollenRadiusMultiplier
+                                Radius = math.max(0.01f,txAutotrophChrome1W.Value.pollenRange*
+                                 environmentSettings[0].txAutotrophConsts.pollenRadiusMultiplier)
                             }, new  CollisionFilter{BelongsTo = 2,CollidesWith = 4,GroupIndex = 0},
                             new Material{Flags = Material.MaterialFlags.IsTrigger})
                     });
@@ -434,27 +433,7 @@ namespace EcoSim {
                     
                     ecb.SetComponent(index, sprout, txAutotrophChrome1Ab.Copy());
                     ecb.SetComponent(index, sprout, new TxAutotrophChrome1W {Value = txAutotrophChrome1W.Value.Copy()});
-                    ecb.SetComponent(index, sprout, new TxAutotrophChrome2() {
-                            r0 = txAutotrophChrome2.r0,
-                            g0 = txAutotrophChrome2.g0,
-                            b0 = txAutotrophChrome2.b0,
-                            r1 = txAutotrophChrome2.r1,
-                            g1 = txAutotrophChrome2.g1,
-                            b1 = txAutotrophChrome2.b1,
-                            r2 = txAutotrophChrome2.r2,
-                            g2 = txAutotrophChrome2.g2,
-                            b2 = txAutotrophChrome2.b2,
-                            dr0 = txAutotrophChrome2.dr0,
-                            dg0 = txAutotrophChrome2.dg0,
-                            db0 = txAutotrophChrome2.db0,
-                            dr1 = txAutotrophChrome2.dr1,
-                            dg1 = txAutotrophChrome2.dg1,
-                            db1 = txAutotrophChrome2.db1,
-                            dr2 = txAutotrophChrome2.dr2,
-                            dg2 = txAutotrophChrome2.dg2,
-                            db2 = txAutotrophChrome2.db2
-                        }
-                    );
+                    ecb.SetComponent(index, sprout, txAutotrophChrome2.Copy());
 
                     float Normalize(float cg) {
                         return (cg + colorGeneScale / 2) / colorGeneScale;
@@ -479,7 +458,7 @@ namespace EcoSim {
                     ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
                     ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
                     ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
-                }
+                 }
             }
         }
 
@@ -550,12 +529,7 @@ namespace EcoSim {
             m_EndSimulationEcbSystem = World
                 .GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         }
-
-        protected override void OnDestroy() {
-            base.OnDestroy();
-            //prefabSeedArray.Dispose();
-        }
-
+        
         struct MakeSprout : IJobForEachWithEntity< TxAutotrophPhenotype,RandomComponent, TxAutotrophChrome1AB,
             TxAutotrophChrome1W, TxAutotrophChrome2,Translation> {
             [ReadOnly] public NativeArray<Entity> prefabSeedArray;

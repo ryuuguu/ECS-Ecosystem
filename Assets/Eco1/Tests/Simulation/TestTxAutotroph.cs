@@ -49,6 +49,7 @@ namespace Tests {
             
             sprout = m_Manager.CreateEntity();
             m_Manager.AddComponentData(sprout, new RandomComponent {random = new Unity.Mathematics.Random(1)});
+            m_Manager.AddComponentData(sprout, new Gamete(){isFertilized = true});
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1AB());
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
@@ -73,22 +74,24 @@ namespace Tests {
                     }, CollisionFilter.Default, 
                     new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
             
+            
             var seed = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(pollenTrigger, new TxAutotrophSeed());
-            m_Manager.AddComponentData(pollenTrigger, new Gamete());
-            m_Manager.AddComponentData(pollenTrigger, new Prefab());
-            m_Manager.AddComponentData(pollenTrigger, new Translation());
-            m_Manager.AddComponentData(pollenTrigger, new PhysicsCollider {
+            m_Manager.AddComponentData(seed, new TxAutotrophSeed());
+            m_Manager.AddComponentData(seed, new Gamete(){isFertilized = true});
+            m_Manager.AddComponentData(seed, new Prefab());
+            m_Manager.AddComponentData(seed, new Translation());
+            m_Manager.AddComponentData(seed, new PhysicsCollider {
                 Value = Unity.Physics.SphereCollider.Create(
                     new SphereGeometry {
                         Center = float3.zero,
                         Radius = 1,
                     }, CollisionFilter.Default, 
                     new Unity.Physics.Material{Flags = Unity.Physics.Material.MaterialFlags.IsTrigger})});
-
             
             
-            var es = new Environment.EnvironmentSettings[1]; 
+            
+            var es = new Environment.EnvironmentSettings[1];
+            es[0].txAutotrophConsts.pollenRadiusMultiplier = 1;
             Environment.environmentSettings = new NativeArray<Environment.EnvironmentSettings>(es,Allocator.Persistent);
         }
 
@@ -100,7 +103,8 @@ namespace Tests {
 
         [Test]
         public void Tx_Sprout_Test() {
-            var presprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
+            var presprouts = m_Manager.CreateEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
+                ComponentType.ReadOnly<Gamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
@@ -112,7 +116,8 @@ namespace Tests {
             World.CreateSystem<TxAutotrophSproutSystem>().Update(); 
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
             
-            var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<RandomComponent>(),
+            var sprouts = m_Manager.CreateEntityQuery(ComponentType.ReadWrite<RandomComponent>(),
+                ComponentType.ReadOnly<Gamete>(),
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
