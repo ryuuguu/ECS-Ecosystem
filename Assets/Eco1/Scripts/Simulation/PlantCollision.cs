@@ -107,8 +107,8 @@ public class TriggerLeafSystem : JobComponentSystem {
     }
 
     
-    struct MakeTFertilizerDict : ITriggerEventsJob { 
-        [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
+    struct MakeTFertilizerDict : ITriggerEventsJob {
+        [ReadOnly] public ComponentDataFromEntity<TxAutotrophChrome2AB> txAutotrophChrome2AB;
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPollen> TxAutotrophPollen;
         
         
@@ -137,13 +137,18 @@ public class TriggerLeafSystem : JobComponentSystem {
                     e = eA;
                     eOther = eB;
                 }
-
-                if (!fertilizeDict.ContainsKey(e)) {
-                    fertilizeDict[e] = eOther;
-                }
-                else {
-                    if (random.NextBool()) {
+                float distance = txAutotrophChrome2AB[TxAutotrophPollen[eOther].plant].DistanceSq(
+                    txAutotrophChrome2AB[e]
+                    );
+                if (random.NextFloat(0, 1) > distance) {
+                    if (!fertilizeDict.ContainsKey(e)) {
                         fertilizeDict[e] = eOther;
+
+                    }
+                    else {
+                        if (random.NextBool()) {
+                            fertilizeDict[e] = eOther;
+                        }
                     }
                 }
             }
@@ -209,7 +214,7 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         JobHandle makeFertilizeDictJobHandle = new MakeTFertilizerDict()
         {
-            txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
+            txAutotrophChrome2AB = GetComponentDataFromEntity<TxAutotrophChrome2AB>(),
             TxAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>(),
             environmentSettings = Environment.environmentSettings,
             fertilizeDict = fertilizeDict,

@@ -177,6 +177,15 @@ public struct TxAutotrophChrome2AB : IComponentData{
         return result; 
     }
     
+    public float DistanceSq(TxAutotrophChrome2AB other, float maxDistanceSq = 40000) {
+        float sum = 0;
+        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
+            sum += (ValueA[i] + ValueB[i]) - (other.ValueA[i] + other.ValueB[i]);
+        }
+        var d =1- math.max(1,math.min(0,  sum-40000));
+        return d;
+    }
+    
 }
 
 [System.Serializable]

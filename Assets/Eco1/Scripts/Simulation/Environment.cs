@@ -156,7 +156,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
 
          
 
-        public float colorGeneScale; 
+        public float colorGeneMaxDistanceSq; 
 
     }
     [Serializable]
