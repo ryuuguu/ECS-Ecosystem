@@ -231,11 +231,10 @@ namespace EcoSim {
                 
                 txAutotrophPhenotype = new TxAutotrophPhenotype() {
                     age = txAutotrophPhenotype.age,
-                    height = txAutotrophPhenotype.height+ heightGrow,
+                    height = math.sqrt(txAutotrophPhenotype.height * txAutotrophPhenotype.height + heightGrow),
                     leaf = txAutotrophPhenotype.leaf + leafGrow,
                     seed = txAutotrophPhenotype.seed + seedGrow/environmentSettings[0].txAutotrophConsts.seedDivisor
                 };
-                
                 
                 if (heightGrow != 0) {
                     scale.Value = txAutotrophConsts.stemScale * txAutotrophPhenotype.height;
@@ -449,30 +448,25 @@ namespace EcoSim {
                     var chrome2B = pollenChrome2.Crossover(ref randomComponent.random);
                     var chrome2AB = new TxAutotrophChrome2AB {ValueA = chrome2A, ValueB = chrome2B};
                     ecb.SetComponent(index, sprout, chrome2AB);
-
-                    float Normalize(float cg) {
-                        return (cg ) / colorGeneScale;
-                    }
-
-                    var nr0 = Normalize(txAutotrophChrome2AB.ValueA.r0);
-                    var ng0 = Normalize(txAutotrophChrome2AB.ValueA.g0);
-                    var nb0 = Normalize(txAutotrophChrome2AB.ValueA.b0);
-                    var nr1 = Normalize(txAutotrophChrome2AB.ValueA.r1);
-                    var ng1 = Normalize(txAutotrophChrome2AB.ValueA.g1);
-                    var nb1 = Normalize(txAutotrophChrome2AB.ValueA.b1);
-                    var nr2 = Normalize(txAutotrophChrome2AB.ValueA.r2);
-                    var ng2 = Normalize(txAutotrophChrome2AB.ValueA.g2);
-                    var nb2 = Normalize(txAutotrophChrome2AB.ValueA.b2);
-                    var baseC = Normalize(colorGeneScale/2);
+                    
+                    var norm1 = chrome1AB.MaxNorm();
+                    var baseC = 0.5f;
+                    var norm2 = chrome2AB.MaxNorm();
 
                     ecb.SetComponent(index, sprout, new EnergyStore {Value = txAutotrophSprout.energy});
                     ecb.DestroyEntity(index, entity);
-                    ecb.SetComponent(index, petal0, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
-                    ecb.SetComponent(index, petal1, new MaterialColor {Value = new float4(nr0, ng0, nb0, 1)});
-                    ecb.SetComponent(index, petal2, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
-                    ecb.SetComponent(index, petal3, new MaterialColor {Value = new float4(nr1, ng1, nb1, 1)});
-                    ecb.SetComponent(index, petal4, new MaterialColor {Value = new float4(baseC, baseC, baseC, 1)});
-                    ecb.SetComponent(index, petal5, new MaterialColor {Value = new float4(nr2, ng2, nb2, 1)});
+                    ecb.SetComponent(index, petal0, new MaterialColor 
+                        {Value = new float4(norm1[0], norm1[1], norm1[2], 1)});
+                    ecb.SetComponent(index, petal1, new MaterialColor 
+                        {Value = new float4(norm1[3], norm1[4], norm1[5], 1)});
+                    ecb.SetComponent(index, petal2, new MaterialColor 
+                        {Value = new float4(norm1[6], norm1[7], norm1[8], 1)});
+                    ecb.SetComponent(index, petal3, new MaterialColor 
+                        {Value = new float4(norm2.r0, norm2.g0, norm2.b0, 1)});
+                    ecb.SetComponent(index, petal4, new MaterialColor 
+                        {Value = new float4(norm2.r1, norm2.g1, norm2.b1, 1)});
+                    ecb.SetComponent(index, petal5, new MaterialColor 
+                        {Value = new float4(norm2.r2, norm2.g2, norm2.b2, 1)});
                  }
             }
         }
@@ -560,11 +554,22 @@ namespace EcoSim {
                  [ReadOnly] ref TxAutotrophChrome2AB txAutotrophChrome2AB,
                  [ReadOnly] ref Translation translation
             ) {
-                float Mutate(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
+                float MutateMult(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
                     float rangeH) {
                     bool mutate = rate < random.NextFloat(0, 1);
                     if (mutate) {
                         var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
+                        return mutant;
+                    } else {
+                        return val;
+                    }
+                }
+                
+                float MutateAdd(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
+                    float rangeH) {
+                    bool mutate = rate < random.NextFloat(0, 1);
+                    if (mutate) {
+                        var mutant = math.max(0,val + random.NextFloat(rangeL, rangeH));
                         return mutant;
                     } else {
                         return val;
@@ -604,19 +609,26 @@ namespace EcoSim {
                         ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
                         
-                        var txCG = txAutotrophChrome2AB.Copy();
+                        
                         
                         var chrome1AB = txAutotrophChrome1AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
-                            chrome1AB.ValueA[i] = Mutate(chrome1AB.ValueA[i], ref randomComponent.random
+                            chrome1AB.ValueA[i] = MutateMult(chrome1AB.ValueA[i], ref randomComponent.random
                                 , mRate, mRangeL, mRangeH);
-                            chrome1AB.ValueB[i] = Mutate(chrome1AB.ValueB[i], ref randomComponent.random
+                            chrome1AB.ValueB[i] = MutateMult(chrome1AB.ValueB[i], ref randomComponent.random
                                 , mRate, mRangeL, mRangeH);
                         }
                         var chrome1W = chrome1AB.GetChrome1W();
                         ecb.AddComponent(index,e,chrome1AB);
                         ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
-                        ecb.AddComponent(index, e , txCG);
+                        var chrome2AB = txAutotrophChrome2AB.Copy();
+                        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
+                            chrome2AB.ValueA[i] = MutateAdd(chrome2AB.ValueA[i], ref randomComponent.random
+                                , mRate, -2, 2);
+                            chrome2AB.ValueB[i] = MutateAdd(chrome2AB.ValueB[i], ref randomComponent.random
+                                , mRate, -2, 2);
+                        }
+                        ecb.AddComponent(index, e , chrome2AB);
                         
                     }
                 }
