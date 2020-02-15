@@ -24,11 +24,6 @@ public class TriggerLeafSystem : JobComponentSystem {
     
     private EntityQuery m_GroupShade;
     private EntityQuery m_GroupGamete;
-
-    struct Genome {
-        public TxAutotrophChrome1AB txAutotrophChrome1Ab; 
-        public TxAutotrophChrome2 txAutotrophChrome2; // this will be changed ColorChrome1AB
-    }
     
     protected override void OnCreate() {
         m_EntityCommandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -159,10 +154,8 @@ public class TriggerLeafSystem : JobComponentSystem {
                 txAutotrophGamete.isFertilized = true;
                 txAutotrophGamete.txAutotrophChrome1AB = 
                     txAutotrophChrome1AB[ txAutotrophPollen[ fertilizeDict[entity]].plant].Copy();
-                
-                
-                //txAutotrophGamete.txAutotrophChrome2AB = 
-                //    txAutotrophChrome2AB[ txAutotrophPollen[ fertilizeDict[entity]].plant].Copy();
+                txAutotrophGamete.txAutotrophChrome2AB = 
+                    txAutotrophChrome2AB[ txAutotrophPollen[ fertilizeDict[entity]].plant].Copy();
             }
         }
     }
@@ -198,18 +191,19 @@ public class TriggerLeafSystem : JobComponentSystem {
         
         makeShadePairsJobHandle.Complete();
         
-        
+        /*
         //Debug.Log("ShadeDict: " + shadeDict.Length);
         Debug.Log("FertilizeDict: " + fertilizeDict.Length);
         var keys =  fertilizeDict.GetKeyArray(Allocator.Persistent);
-        if (keys.Length > 0) {
-            Debug.Log("fertilizeDict gamete: " + keys[0] + " pollen: " + fertilizeDict[keys[0]]);
-        }
-        //foreach (var c in keys ) {
-        //    Debug.Log("fertilizeDict: " + c + " : " + fertilizeDict[c]);
+        //if (keys.Length > 0) {
+        //    Debug.Log("fertilizeDict gamete: " + keys[0] + " pollen: " + fertilizeDict[keys[0]]);
         //}
+        foreach (var c in keys ) {
+            Debug.Log("fertilizeDict: " + c + " : " + fertilizeDict[c] );
+        }
 
         keys.Dispose();
+        */
         
         
         JobHandle  autotrophFertilize = new AutotrophFertilize()

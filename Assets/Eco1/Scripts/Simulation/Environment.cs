@@ -24,8 +24,12 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     public static float defaultLightEnergy = 20;
 
-    public static float Fitness(float val) {
+    public static float Fitness_old(float val) {
         return math.select (-0.3f + 1 / (1 + 1 / val),0 ,val==0);
+    }
+    
+    public static float Fitness(float val) {
+        return val;
     }
     
     public static float LightEnergy_old(float3 position, float ambientLight, float variableLight) {
@@ -98,7 +102,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         int i = 0;
         foreach (var startPos in startPositions) {
             i++;
-            i %= 4;
+            i %= TxAutotrophChrome2.LENGTH;
             var position = new Vector3(startPos.x, 0, startPos.y);
             position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
                          TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
@@ -110,9 +114,13 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             em.AddComponentData(entity, new TxAutotrophGamete {isFertilized = true,txAutotrophChrome1AB = txAutotrophChrome1Ab});
             em.AddComponentData(entity, txAutotrophChrome1Ab);
             em.AddComponentData(entity, txAutotrophChrome1Ab.GetChrome1W());
-            em.AddComponentData(entity, new TxAutotrophChrome2{r2 = colors[i].x*1000});
-            em.AddComponentData(entity, new TxAutotrophChrome2 {b2 = colors[i].y*1000});
-            em.AddComponentData(entity, new TxAutotrophChrome2 {g2 = colors[i].z*1000});
+            var chrome2 = new TxAutotrophChrome2();
+            for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
+                chrome2[j] = 1000;
+            }
+            chrome2[i] = 1000;
+            
+            em.AddComponentData(entity, new TxAutotrophChrome2AB{ValueA = chrome2, ValueB = chrome2} );
         }
     }
     

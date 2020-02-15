@@ -125,6 +125,29 @@ public struct TxAutotrophChrome2AB : IComponentData{
         return result;
     }
 
+    public TxAutotrophChrome2 Crossover(ref Random random) {
+        int a = random.NextInt(0, TxAutotrophChrome2.LENGTH);
+        int b = random.NextInt(0, TxAutotrophChrome2.LENGTH);
+        if (a > b) {
+            var temp = a;
+            a = b;
+            b = temp;
+        }
+        var result = new TxAutotrophChrome2();
+        for (int i = 0; i < a; i++) {
+            result[i] = ValueA[i];
+        }
+        for (int i = a; i < b; i++) {
+            result[i] = ValueB[i];
+        }
+        for (int i = b; i < TxAutotrophChrome2.LENGTH; i++) {
+            result[i] = ValueA[i];
+        }
+
+        return result;
+    }
+
+    
 }
 
 [System.Serializable]
