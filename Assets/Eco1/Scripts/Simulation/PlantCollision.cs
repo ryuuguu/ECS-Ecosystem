@@ -38,20 +38,15 @@ public class TriggerLeafSystem : JobComponentSystem {
         
     }
 
-    struct MakeTriggerDicts : ITriggerEventsJob {
+    struct MakeShadeDict : ITriggerEventsJob {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
-        [ReadOnly]public ComponentDataFromEntity<TxAutotrophPollen> TxAutotrophPollen;
-        
 
-        
+
         [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
         
         public NativeHashMap<Entity, float> shadeDict;
-        public NativeHashMap<Entity, Entity> fertilizeDict;
-        public Unity.Mathematics.Random random;
-        
-        
+
         public void Execute(TriggerEvent triggerEvent) {
             var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
             var eA = triggerEvent.Entities.EntityA;
@@ -62,26 +57,7 @@ public class TriggerLeafSystem : JobComponentSystem {
             Entity eOther;
             
             
-            if (TxAutotrophPollen.Exists(eA) || TxAutotrophPollen.Exists(eB)) {
-                if (TxAutotrophPollen.Exists(eA)) {
-                    eOther = eA;
-                    e = eB;
-                }
-                else {
-                    e = eA;
-                    eOther = eB;
-                }
-
-                if (!fertilizeDict.ContainsKey(e)) {
-                    fertilizeDict[e] = eOther;
-                }
-                else {
-                    if (random.NextBool()) {
-                        fertilizeDict[e] = eOther;
-                    }
-                }
-            }
-            else {
+           
                 if (txAutotrophPhenotype.Exists(eA)) {
                     var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height > translations[eB].Value.y
                                + txAutotrophPhenotype[eB].height;
@@ -126,10 +102,55 @@ public class TriggerLeafSystem : JobComponentSystem {
                         }
                     }
                 }
+            
+        }
+    }
+
+    
+    struct MakeTFertilizerDict : ITriggerEventsJob { 
+        [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
+        [ReadOnly]public ComponentDataFromEntity<TxAutotrophPollen> TxAutotrophPollen;
+        
+        
+        [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
+        
+        public NativeHashMap<Entity, Entity> fertilizeDict;
+        public Unity.Mathematics.Random random;
+        
+        
+        public void Execute(TriggerEvent triggerEvent) {
+            var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
+            var eA = triggerEvent.Entities.EntityA;
+            var eB = triggerEvent.Entities.EntityB;
+            
+            
+            Entity e;
+            Entity eOther;
+            
+            
+            if (TxAutotrophPollen.Exists(eA) || TxAutotrophPollen.Exists(eB)) {
+                if (TxAutotrophPollen.Exists(eA)) {
+                    eOther = eA;
+                    e = eB;
+                }
+                else {
+                    e = eA;
+                    eOther = eB;
+                }
+
+                if (!fertilizeDict.ContainsKey(e)) {
+                    fertilizeDict[e] = eOther;
+                }
+                else {
+                    if (random.NextBool()) {
+                        fertilizeDict[e] = eOther;
+                    }
+                }
             }
         }
     }
 
+    
     struct AddShade : IJobForEachWithEntity<Shade> {
         [ReadOnly] public NativeHashMap<Entity, float> shadeDict;
 
@@ -178,18 +199,26 @@ public class TriggerLeafSystem : JobComponentSystem {
         var shadeDict = new NativeHashMap<Entity,float>(shadesCount, Allocator.TempJob);
         var fertilizeDict = new NativeHashMap<Entity,Entity>(unfertilizedCount, Allocator.TempJob);
         
-        JobHandle makeShadePairsJobHandle = new MakeTriggerDicts
+        JobHandle makeShadeDictJobHandle = new MakeShadeDict
         {
             translations = GetComponentDataFromEntity<Translation>(),
             txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
-            TxAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>(),
-            environmentSettings = Environment.environmentSettings, 
+            environmentSettings = Environment.environmentSettings,
             shadeDict = shadeDict,
+        }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
+        
+        JobHandle makeFertilizeDictJobHandle = new MakeTFertilizerDict()
+        {
+            txAutotrophPhenotype = GetComponentDataFromEntity<TxAutotrophPhenotype>(),
+            TxAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>(),
+            environmentSettings = Environment.environmentSettings,
             fertilizeDict = fertilizeDict,
             random = new Unity.Mathematics.Random(Environment.environmentSettings[0].random.NextUInt())
         }.Schedule(m_StepPhysicsWorldSystem.Simulation, ref m_BuildPhysicsWorldSystem.PhysicsWorld,  inputDeps);
-        
-        makeShadePairsJobHandle.Complete();
+
+
+        makeFertilizeDictJobHandle.Complete();
+        makeShadeDictJobHandle.Complete();
         
         /*
         //Debug.Log("ShadeDict: " + shadeDict.Length);
@@ -212,12 +241,12 @@ public class TriggerLeafSystem : JobComponentSystem {
             txAutotrophChrome1AB = GetComponentDataFromEntity<TxAutotrophChrome1AB>(),
             txAutotrophChrome2AB = GetComponentDataFromEntity<TxAutotrophChrome2AB>(),
             txAutotrophPollen = GetComponentDataFromEntity<TxAutotrophPollen>()
-        }.Schedule(m_GroupGamete, makeShadePairsJobHandle);
+        }.Schedule(m_GroupGamete, makeFertilizeDictJobHandle);
         
         JobHandle addShadeJobHandle = new AddShade
         {
             shadeDict = shadeDict,
-        }.Schedule(m_GroupShade, makeShadePairsJobHandle);
+        }.Schedule(m_GroupShade, makeShadeDictJobHandle);
 
         addShadeJobHandle.Complete();
         autotrophFertilize.Complete();
