@@ -458,15 +458,15 @@ namespace EcoSim {
                     ecb.SetComponent(index, sprout, new EnergyStore {Value = txAutotrophSprout.energy});
                     ecb.DestroyEntity(index, entity);
                     ecb.SetComponent(index, petal0, new MaterialColor 
-                        {Value = new float4(norm1[0], norm1[1], norm1[2], 1)});
-                    ecb.SetComponent(index, petal1, new MaterialColor 
-                        {Value = new float4(norm1[3], norm1[4], norm1[5], 1)});
-                    ecb.SetComponent(index, petal2, new MaterialColor 
-                        {Value = new float4(norm1[6], norm1[7], norm1[8], 1)});
-                    ecb.SetComponent(index, petal3, new MaterialColor 
                         {Value = new float4(norm2.r0, norm2.g0, norm2.b0, 1)});
-                    ecb.SetComponent(index, petal4, new MaterialColor 
+                    ecb.SetComponent(index, petal1, new MaterialColor 
+                        {Value = new float4(norm2.r0, norm2.g0, norm2.b0, 1)});
+                    ecb.SetComponent(index, petal2, new MaterialColor 
                         {Value = new float4(norm2.r1, norm2.g1, norm2.b1, 1)});
+                    ecb.SetComponent(index, petal3, new MaterialColor 
+                        {Value = new float4(norm2.r1, norm2.g1, norm2.b1, 1)});
+                    ecb.SetComponent(index, petal4, new MaterialColor 
+                        {Value = new float4(norm2.r2, norm2.g2, norm2.b2, 1)});
                     ecb.SetComponent(index, petal5, new MaterialColor 
                         {Value = new float4(norm2.r2, norm2.g2, norm2.b2, 1)});
                  }
