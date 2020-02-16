@@ -58,7 +58,7 @@ namespace Tests {
             m_Manager.AddComponentData(sprout, new TxAutotrophSprout {location = new float3(1,2,3),energy = 5});
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1AB());
             m_Manager.AddComponentData(sprout, new  TxAutotrophChrome1W{Value = new TxAutotrophChrome1()});
-            m_Manager.AddComponentData(sprout, new  TxAutotrophChrome2{});
+            m_Manager.AddComponentData(sprout, new  TxAutotrophChrome2AB{});
             
             
             m_Manager.AddComponentData(pollenTrigger, new TxAutotrophPollen{plant = sprout});
@@ -112,7 +112,7 @@ namespace Tests {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophChrome2>()
+                ComponentType.ReadOnly<TxAutotrophChrome2AB>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,presprouts.Length,"Presprouts count");
             presprouts.Dispose();
@@ -125,7 +125,7 @@ namespace Tests {
                 ComponentType.ReadOnly<TxAutotrophSprout>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1AB>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophChrome2>()
+                ComponentType.ReadOnly<TxAutotrophChrome2AB>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(0,sprouts.Length,"Sprouts count");
             sprouts.Dispose();
@@ -146,23 +146,30 @@ namespace Tests {
         [Test]
         public void TxAutotrophGrow_Test() {
             //set Environment & genome 
-            
-            var chrome1 = new TxAutotrophChrome1 {
+
+
+            var chrome1 = new TxAutotrophChrome1() {
                 nrg2Height = 1,
                 nrg2Leaf = 1,
                 nrg2Seed = 1,
                 nrg2Storage = 1,
                 seedSize = 4, // not tested yet
-                maxHeight = 5,
-                maxLeaf = 5.5f
+                maxHeight = 10,  //doubled because pollen values are all 0
+                maxLeaf = 11f  //doubled because pollen values are all 0
             };
+            
+            var chrome1W = new TxAutotrophChrome1W {
+                Value = chrome1.Copy()
+            };
+            
+            m_Manager.SetComponentData(sprout, chrome1W);
 
-
-            m_Manager.SetComponentData(sprout, new TxAutotrophChrome1AB {
+            var chrome1AB = new TxAutotrophChrome1AB {
                 ValueA = chrome1.Copy(),
-                ValueB = chrome1.Copy()
-            });
-           
+                ValueB = chrome1.Copy(),
+            };
+            m_Manager.SetComponentData(sprout, chrome1AB);
+            
             var es = Environment.environmentSettings[0];
             es.txAutotrophConsts.seedDivisor = 2;
             es.txAutotrophConsts.stemScale = 1;
@@ -186,18 +193,39 @@ namespace Tests {
             var plant = stems[0];
             stems.Dispose();
             
+            Assert.AreEqual( 1f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
+                "Height start");
+            Assert.AreEqual( 1f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
+                "Leaf start");
+            
+            Assert.AreEqual( 5, m_Manager.GetComponentData<TxAutotrophChrome1W>(plant).Value.maxHeight,
+                "maxHeight start");
+            
+            Assert.AreEqual( m_Manager.GetComponentData<TxAutotrophChrome1W>(plant).Value.nrg2Height,
+                m_Manager.GetComponentData<TxAutotrophChrome1W>(plant).Value.nrg2Leaf,
+                "nrg2Height == nrg2Leaf pre");
+            
             m_Manager.SetComponentData(plant, new EnergyStore(){Value = 10});
             World.CreateSystem<TxAutotrophGrow>().Update();
+            
+            Assert.AreEqual( m_Manager.GetComponentData<TxAutotrophChrome1W>(plant).Value.nrg2Height,
+                m_Manager.GetComponentData<TxAutotrophChrome1W>(plant).Value.nrg2Leaf,
+                "nrg2Height == nrg2Leaf post");
            
-            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
-                "Height");
+            Assert.AreEqual(  m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height ,
+                m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
+                "Height == Leaf");
+           
             Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).leaf,
                 "Leaf");
             Assert.AreEqual( 1.25f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).seed,
                 "Seed");
             Assert.AreEqual( 2.5f , m_Manager.GetComponentData<EnergyStore>(plant).Value,
                 "EnergyStore");
-            Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(plant).Value, "stem Scale");
+            Assert.AreEqual(3.5f, m_Manager.GetComponentData<Scale>(plant).Value,
+                "stem Scale");
+            Assert.AreEqual( 3.5f , m_Manager.GetComponentData<TxAutotrophPhenotype>(plant).height,
+                "Height");
             
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
            

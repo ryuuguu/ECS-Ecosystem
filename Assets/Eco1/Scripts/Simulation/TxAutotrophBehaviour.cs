@@ -151,7 +151,10 @@ namespace EcoSim {
                     Value =energyStore.Value
                            - (txAutotrophConsts.baseCost + 
                               txAutotrophConsts.leafCostMultiple * txAutotrophPhenotype.leaf +
-                              txAutotrophConsts.heightCostMultiple * txAutotrophPhenotype.height +
+                              
+                              txAutotrophConsts.heightCostMultiple * 
+                              txAutotrophPhenotype.height *  txAutotrophPhenotype.height +
+                              
                               txAutotrophConsts.ageMultiple * txAutotrophChrome1W.Value.ageRate +
                               txAutotrophPhenotype.age / txAutotrophChrome1W.Value.ageRate+
                               txAutotrophConsts.pollenCostMultiple  * txAutotrophChrome1W.Value.pollenRange
@@ -231,7 +234,7 @@ namespace EcoSim {
                 
                 txAutotrophPhenotype = new TxAutotrophPhenotype() {
                     age = txAutotrophPhenotype.age,
-                    height = math.sqrt(txAutotrophPhenotype.height * txAutotrophPhenotype.height + heightGrow),
+                    height = txAutotrophPhenotype.height + heightGrow,
                     leaf = txAutotrophPhenotype.leaf + leafGrow,
                     seed = txAutotrophPhenotype.seed + seedGrow/environmentSettings[0].txAutotrophConsts.seedDivisor
                 };

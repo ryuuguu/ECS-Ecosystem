@@ -37,7 +37,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
     
     public static float LightEnergySine(float3 position, float ambientLight, float variableLight) {
-        return ambientLight+ (variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
+        return ambientLight+(position.x/512) *(variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
     }
 
     public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
@@ -106,14 +106,15 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             var position = new Vector3(startPos.x, 0, startPos.y);
             position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
                          TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
-            var sh = terrain.SampleHeight(position);
             var em = World.DefaultGameObjectInjectionWorld.EntityManager;
             var entity = em.CreateEntity();
             em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
             em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
-            em.AddComponentData(entity, new TxAutotrophGamete {isFertilized = true,txAutotrophChrome1AB = txAutotrophChrome1Ab});
-            em.AddComponentData(entity, txAutotrophChrome1Ab);
-            em.AddComponentData(entity, txAutotrophChrome1Ab.GetChrome1W());
+
+            var chrome1AB = txAutotrophChrome1Ab.RandomRange(ref random);
+            em.AddComponentData(entity, new TxAutotrophGamete {isFertilized = true,txAutotrophChrome1AB = chrome1AB});
+            em.AddComponentData(entity, chrome1AB);
+            em.AddComponentData(entity, chrome1AB.GetChrome1W());
             var chrome2 = new TxAutotrophChrome2();
             for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
                 chrome2[j] = 0;
