@@ -97,7 +97,7 @@ public class TxAutotrophStats  {
                 ecb.SetComponent(index, petal1, new Translation() {Value = txAutotrophStatFlowerSprout.location });
                 ecb.AddComponent(index, petal1, new Scale {Value = txAutotrophStatFlowerSprout.scale});
                 ecb.SetComponent(index, petal1, new Rotation {Value = quaternion.Euler(0, math.PI / 3, 0)});
-                ecb.AddComponent(index, petal0, new TxAutotrophStatFlowerPetal {
+                ecb.AddComponent(index, petal1, new TxAutotrophStatFlowerPetal {
                     flowerIndex = txAutotrophStatFlowerSprout.index,
                     petalIndex = 1
                 });
@@ -107,7 +107,7 @@ public class TxAutotrophStats  {
                 ecb.SetComponent(index, petal2, new Translation() {Value = txAutotrophStatFlowerSprout.location });
                 ecb.AddComponent(index, petal2, new Scale {Value = txAutotrophStatFlowerSprout.scale});
                 ecb.SetComponent(index, petal2, new Rotation {Value = quaternion.Euler(0, 2 * math.PI / 3, 0)});
-                ecb.AddComponent(index, petal0, new TxAutotrophStatFlowerPetal {
+                ecb.AddComponent(index, petal2, new TxAutotrophStatFlowerPetal {
                     flowerIndex = txAutotrophStatFlowerSprout.index,
                     petalIndex = 2
                 });
@@ -117,7 +117,7 @@ public class TxAutotrophStats  {
                 ecb.SetComponent(index, petal3, new Translation() {Value = txAutotrophStatFlowerSprout.location });
                 ecb.AddComponent(index, petal3, new Scale {Value= txAutotrophStatFlowerSprout.scale});
                 ecb.SetComponent(index, petal3, new Rotation {Value = quaternion.Euler(0, 3 * math.PI / 3, 0)});
-                ecb.AddComponent(index, petal0, new TxAutotrophStatFlowerPetal {
+                ecb.AddComponent(index, petal3, new TxAutotrophStatFlowerPetal {
                     flowerIndex = txAutotrophStatFlowerSprout.index,
                     petalIndex = 3
                 });
@@ -127,7 +127,7 @@ public class TxAutotrophStats  {
                 ecb.SetComponent(index, petal4, new Translation() {Value = txAutotrophStatFlowerSprout.location });
                 ecb.AddComponent(index, petal4, new Scale {Value = txAutotrophStatFlowerSprout.scale});
                 ecb.SetComponent(index, petal4, new Rotation {Value = quaternion.Euler(0, 4 * math.PI / 3, 0)});
-                ecb.AddComponent(index, petal0, new TxAutotrophStatFlowerPetal {
+                ecb.AddComponent(index, petal4, new TxAutotrophStatFlowerPetal {
                     flowerIndex = txAutotrophStatFlowerSprout.index,
                     petalIndex = 4
                 });
@@ -137,7 +137,7 @@ public class TxAutotrophStats  {
                 ecb.SetComponent(index, petal5, new Translation() {Value = txAutotrophStatFlowerSprout.location });
                 ecb.AddComponent(index, petal5, new Scale {Value = txAutotrophStatFlowerSprout.scale});
                 ecb.SetComponent(index, petal5, new Rotation {Value = quaternion.Euler(0, 5 * math.PI / 3, 0)});
-                ecb.AddComponent(index, petal0, new TxAutotrophStatFlowerPetal {
+                ecb.AddComponent(index, petal5, new TxAutotrophStatFlowerPetal {
                     flowerIndex = txAutotrophStatFlowerSprout.index,
                     petalIndex = 5
                 });
@@ -179,13 +179,13 @@ public class DisplayTxAutotrophStats: JobComponentSystem {
 
 
     public struct StatsArea {
-        public TxAutotrophChrome2W chrome2W;
+        public TxAutotrophChrome2Stats chrome2Stats;
         public int count;
     }
     
     protected override void OnCreate() {
         m_Group = GetEntityQuery(
-            ComponentType.ReadOnly<TxAutotrophChrome2W>(),
+            ComponentType.ReadOnly<TxAutotrophChrome2AB>(),
             ComponentType.ReadOnly<Translation>(),
             ComponentType.ReadOnly<TxAutotroph>()
         );
@@ -195,30 +195,29 @@ public class DisplayTxAutotrophStats: JobComponentSystem {
         );
     }
 
-    struct CollectFlowerStats : IJobForEach<TxAutotrophChrome2W, Translation>
-    {
+    struct CollectFlowerStats : IJobForEach<TxAutotrophChrome2AB, Translation> {
         public NativeArray<StatsArea> flowerStats;
         [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
         public void Execute(
-            [ReadOnly] ref TxAutotrophChrome2W txAutotrophChrome2W, 
+            [ReadOnly] ref TxAutotrophChrome2AB txAutotrophChrome2AB, 
             [ReadOnly] ref Translation translation
         ) {
-            var index =TxAutotrophStats.FlowerStatIndex(translation.Value,
+            var indexFS =TxAutotrophStats.FlowerStatIndex(translation.Value,
                 environmentSettings[0].environmentConsts.bounds,
                 environmentSettings[0].environmentConsts.flowerStatsSize
             );
-            var chrome2W = flowerStats[index].chrome2W.Add(txAutotrophChrome2W);
+             var chrome2Stats = flowerStats[indexFS].chrome2Stats.Add(txAutotrophChrome2AB);
 
-            flowerStats[index] = new StatsArea {
-                count = flowerStats[index].count + 1,
-                chrome2W = chrome2W
+            flowerStats[indexFS] = new StatsArea {
+                count = flowerStats[indexFS].count + 1,
+                chrome2Stats = chrome2Stats
             };
         }
     }
     
     struct DisplayFlowerStats : IJobForEach<MaterialColor,TxAutotrophStatFlowerPetal >
     {
-        public NativeArray<StatsArea> flowerStats;
+        [ReadOnly]public NativeArray<StatsArea> flowerStats;
         [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
 
         public void Execute(
@@ -228,11 +227,11 @@ public class DisplayTxAutotrophStats: JobComponentSystem {
         ) {
             var count = flowerStats[txAutotrophStatFlowerPetal.flowerIndex].count;
             if (count > 0) {
-                var chrome2W = flowerStats[txAutotrophStatFlowerPetal.flowerIndex].chrome2W;
+                var chrome2W = flowerStats[txAutotrophStatFlowerPetal.flowerIndex].chrome2Stats;
                 int start = 3 * (txAutotrophStatFlowerPetal.petalIndex / 2);
                 materialColor.Value =
-                    new float4(chrome2W.Value[start] / (20 *count), chrome2W.Value[start + 1] / (20 *count),
-                        chrome2W.Value[start + 2] / (20 *count), 1);
+                    new float4(chrome2W.total[start] / (200*count), chrome2W.total[start + 1] / (200 *count),
+                        chrome2W.total[start + 2] / (200 *count), 1);
             }
         }
     }
@@ -241,23 +240,22 @@ public class DisplayTxAutotrophStats: JobComponentSystem {
 
         float2 statSize = Environment.environmentSettings[0].environmentConsts.flowerStatsSize;
         int length = (int) (statSize.x * statSize.y);
+        
         var flowerStats = new NativeArray<StatsArea> (length, Allocator.TempJob);
         for (int i = 0; i < length; i++) {
-            flowerStats[i] = new StatsArea();
+            flowerStats[i] = new StatsArea{chrome2Stats = new TxAutotrophChrome2Stats(),count = 0};
         }
 
         var jobHandle = inputDeps;
-        /*
+        
         
         CollectFlowerStats collectFlowerStats = new CollectFlowerStats() {
             flowerStats = flowerStats,
             environmentSettings = Environment.environmentSettings
         };
-        jobHandle = collectFlowerStats.Schedule(m_Group, jobHandle);
+        jobHandle = collectFlowerStats.Run(m_Group, jobHandle);
         jobHandle.Complete();
         
-        */
-
         DisplayFlowerStats displayFlowerStats = new DisplayFlowerStats(){
             flowerStats = flowerStats,
             environmentSettings = Environment.environmentSettings
