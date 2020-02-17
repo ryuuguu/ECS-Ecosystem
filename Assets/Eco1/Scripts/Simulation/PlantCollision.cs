@@ -41,8 +41,7 @@ public class TriggerLeafSystem : JobComponentSystem {
     struct MakeShadeDict : ITriggerEventsJob {
         [ReadOnly]public ComponentDataFromEntity<Translation> translations; 
         [ReadOnly]public ComponentDataFromEntity<TxAutotrophPhenotype> txAutotrophPhenotype;
-
-
+        
         [ReadOnly]public NativeArray<Environment.EnvironmentSettings> environmentSettings;
         
         public NativeHashMap<Entity, float> shadeDict;
@@ -51,14 +50,10 @@ public class TriggerLeafSystem : JobComponentSystem {
             var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
             var eA = triggerEvent.Entities.EntityA;
             var eB = triggerEvent.Entities.EntityB;
-            
-            
+
             Entity e;
             Entity eOther;
-            
-            
-           
-                if (txAutotrophPhenotype.Exists(eA)) {
+            if (txAutotrophPhenotype.Exists(eA)) {
                     var swap = translations[eA].Value.y + txAutotrophPhenotype[eA].height > translations[eB].Value.y
                                + txAutotrophPhenotype[eB].height;
                     if (swap) {
@@ -101,7 +96,7 @@ public class TriggerLeafSystem : JobComponentSystem {
                             shadeDict[e] += (1 - ((maxD - num) / maxD)) * r1;
                         }
                     }
-                }
+            }
             
         }
     }

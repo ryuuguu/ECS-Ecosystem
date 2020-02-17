@@ -131,6 +131,8 @@ public struct TxAutotrophChrome1 {
 public struct TxAutotrophChrome2AB : IComponentData{
     public TxAutotrophChrome2 ValueA;
     public TxAutotrophChrome2 ValueB;
+    public const float MAX = 100;
+    public const float MIN = 0;
 
     public TxAutotrophChrome2W GetChrome1W() {
         var result = new TxAutotrophChrome2W();
@@ -173,15 +175,8 @@ public struct TxAutotrophChrome2AB : IComponentData{
 
     public TxAutotrophChrome2 MaxNorm() {
         var result = new TxAutotrophChrome2();
-        float max = 0;
         for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
-            max = math.max( ValueA[i]+ ValueB[i],max);
-        }
-
-        if (max == 0)
-            return result;
-        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
-           result[i] =  (ValueA[i]+ ValueB[i])/max;
+           result[i] =  (ValueA[i]+ ValueB[i])/MAX;
         }
         return result; 
     }
@@ -200,6 +195,15 @@ public struct TxAutotrophChrome2AB : IComponentData{
 [System.Serializable]
 public struct TxAutotrophChrome2W : IComponentData{
     public TxAutotrophChrome2 Value;
+
+    public TxAutotrophChrome2W Add(TxAutotrophChrome2W other) {
+        var result = new TxAutotrophChrome2W();
+        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
+            result.Value[i] = (Value[i] + other.Value[i]) ;
+        }
+        return result;
+    }
+    
 }
 
 

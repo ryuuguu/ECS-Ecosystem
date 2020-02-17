@@ -86,7 +86,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         //DebugTerrain();
         var em = World.DefaultGameObjectInjectionWorld.EntityManager;
         InitialPlants(em);
-        statsFlowers =TxAutotrophStats.MakeFlowerStats(em, es.environmentConsts.bounds, new int2(4, 4));
+        statsFlowers =TxAutotrophStats.MakeFlowerStats(em,
+            es.environmentConsts.bounds,
+            es.environmentConsts.flowerStatsSize);
     }
     
     private void OnDestroy() {
@@ -122,9 +124,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             em.AddComponentData(entity, chrome1AB.GetChrome1W());
             var chrome2 = new TxAutotrophChrome2();
             for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
-                chrome2[j] = 0;
+                chrome2[j] = 75;
             }
-            chrome2[i] = 50;
+            chrome2[i] = 25;
             
             em.AddComponentData(entity, new TxAutotrophChrome2AB{ValueA = chrome2, ValueB = chrome2} );
         }
@@ -172,6 +174,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float4 bounds;
         public int terrainResolution;
         public float3 terrainHeightScale;
+        public int2 flowerStatsSize;
     }
     
     
