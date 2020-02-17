@@ -133,14 +133,6 @@ public struct TxAutotrophChrome2AB : IComponentData{
     public TxAutotrophChrome2 ValueB;
     public const float MAX = 100;
     public const float MIN = 0;
-
-    public TxAutotrophChrome2Stats GetChrome1W() {
-        var result = new TxAutotrophChrome2Stats();
-        for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
-            result.total[i] = (ValueA[i] + ValueB[i])/2;
-        }
-        return result;
-    }
     
     public TxAutotrophChrome2AB Copy () {
         var result = new TxAutotrophChrome2AB();
@@ -221,15 +213,15 @@ public struct TxAutotrophChrome2 : IComponentData {
     public float r2;  
     public float g2;
     public float b2;
-    public float dr0; 
-    public float dg0;
-    public float db0;
-    public float dr1;
-    public float dg1;  
-    public float db1; 
-    public float dr2;  
-    public float dg2;
-    public float db2;
+    public float r3; 
+    public float g3;
+    public float b3;
+    public float r4;
+    public float g4;  
+    public float b4; 
+    public float r5;  
+    public float g5;
+    public float b5;
         
     public const int LENGTH = 18;
     

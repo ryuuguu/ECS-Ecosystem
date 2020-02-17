@@ -228,7 +228,7 @@ public class DisplayTxAutotrophStats: JobComponentSystem {
             var count = flowerStats[txAutotrophStatFlowerPetal.flowerIndex].count;
             if (count > 0) {
                 var chrome2W = flowerStats[txAutotrophStatFlowerPetal.flowerIndex].chrome2Stats;
-                int start = 3 * (txAutotrophStatFlowerPetal.petalIndex / 2);
+                int start = 3 * txAutotrophStatFlowerPetal.petalIndex ;
                 materialColor.Value =
                     new float4(chrome2W.total[start] / (200*count), chrome2W.total[start + 1] / (200 *count),
                         chrome2W.total[start + 2] / (200 *count), 1);

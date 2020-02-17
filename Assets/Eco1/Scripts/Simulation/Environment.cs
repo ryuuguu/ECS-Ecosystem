@@ -124,9 +124,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             em.AddComponentData(entity, chrome1AB.GetChrome1W());
             var chrome2 = new TxAutotrophChrome2();
             for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
-                chrome2[j] = 75;
+                chrome2[j] = 50;
             }
-            chrome2[i] = 25;
+            //chrome2[i] = 25;
             
             em.AddComponentData(entity, new TxAutotrophChrome2AB{ValueA = chrome2, ValueB = chrome2} );
         }
