@@ -161,6 +161,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float seedRangeMultiplier;
         public float mutationRate;
         public float mutationRange;
+        public float crossBreedDistance;
 
          
 

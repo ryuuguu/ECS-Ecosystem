@@ -173,12 +173,12 @@ public struct TxAutotrophChrome2AB : IComponentData{
         return result; 
     }
     
-    public float DistanceSq(TxAutotrophChrome2AB other, float maxDistanceSq = 40000) {
+    public float DistanceSq(TxAutotrophChrome2AB other, float maxDistanceSq ) {
         float sum = 0;
         for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
             sum += (ValueA[i] + ValueB[i]) - (other.ValueA[i] + other.ValueB[i]);
         }
-        var d =1- math.max(1,math.min(0,  sum-40000));
+        var d = math.min(1,math.max(0,  sum/maxDistanceSq));
         return d;
     }
     
@@ -232,7 +232,7 @@ public struct TxAutotrophChrome2 : IComponentData {
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((uint)index >= LENGTH)
-                throw new System.ArgumentException("get index must be between[0...23] was "+ index );
+                throw new System.ArgumentException("get index must be between[0...18] was "+ index );
 #endif
             fixed (TxAutotrophChrome2* array = &this) { return ((float*)array)[index]; }
         }
@@ -240,7 +240,7 @@ public struct TxAutotrophChrome2 : IComponentData {
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((uint)index >= LENGTH)
-                throw new System.ArgumentException("set index must be between[0...23] was " + index);
+                throw new System.ArgumentException("set index must be between[0...18] was " + index);
 #endif
             fixed (float* array = &r0) { array[index] = value; }
         }

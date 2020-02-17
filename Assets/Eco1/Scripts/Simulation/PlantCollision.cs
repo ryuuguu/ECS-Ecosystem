@@ -133,7 +133,7 @@ public class TriggerLeafSystem : JobComponentSystem {
                     eOther = eB;
                 }
                 float distance = txAutotrophChrome2AB[TxAutotrophPollen[eOther].plant].DistanceSq(
-                    txAutotrophChrome2AB[e]
+                    txAutotrophChrome2AB[e],txAutotrophConsts.crossBreedDistance
                     );
                 if (random.NextFloat(0, 1) > distance) {
                     if (!fertilizeDict.ContainsKey(e)) {
