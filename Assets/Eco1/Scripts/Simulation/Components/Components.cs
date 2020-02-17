@@ -31,6 +31,7 @@ namespace EcoSim {
     public struct Shade : IComponentData {
         public float Value;
     }
+
     
     public struct TxAutotrophParts : IComponentData {
         public Entity stem;

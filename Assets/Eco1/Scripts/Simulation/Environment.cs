@@ -16,6 +16,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public static NativeArray< EnvironmentSettings> environmentSettings;
     public static  NativeArray<float> terrainHeight;
     public static NativeArray<float> terrainLight;
+    public NativeArray<Entity> statsFlowers;
 
     [HideInInspector]
     public float[] localTerrainHeight;
@@ -83,16 +84,19 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         es.random = new Random(random.NextUInt());
         environmentSettings[0] = es;
         //DebugTerrain();
-        InitialPlants();
+        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+        InitialPlants(em);
+        statsFlowers =TxAutotrophStats.MakeFlowerStats(em, es.environmentConsts.bounds, new int2(4, 4));
     }
     
     private void OnDestroy() {
         environmentSettings.Dispose();
         terrainHeight.Dispose();
         terrainLight.Dispose();
+        statsFlowers.Dispose(); 
     }
 
-    public void InitialPlants() {
+    public void InitialPlants( EntityManager em) {
         float3[]  colors = new [] {
             new float3(1,-1,-1),
             new float3(-1,1,-1),
@@ -100,13 +104,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             new float3(1,1,-1),
         };
         int i = 0;
+        
         foreach (var startPos in startPositions) {
             i++;
             i %= TxAutotrophChrome2.LENGTH;
             var position = new Vector3(startPos.x, 0, startPos.y);
             position.y = environmentSettings[0].environmentConsts.terrainHeightScale.y *
                          TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds);
-            var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+            
             var entity = em.CreateEntity();
             em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
             em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});

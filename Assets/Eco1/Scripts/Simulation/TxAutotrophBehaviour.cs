@@ -374,7 +374,7 @@ namespace EcoSim {
             ) {
                 
                  if(txAutotrophGamete.isFertilized) 
-                 {
+                 { 
                      var sprout = ecb.Instantiate(index, prefabEntity);
                     var petal0 = ecb.Instantiate(index, prefabPetalEntity);
                     var petal1 = ecb.Instantiate(index, prefabPetalEntity);
