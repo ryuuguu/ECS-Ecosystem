@@ -134,17 +134,19 @@ public class TxAutotrophStats  {
             prefabPetalArray = GetEntityQuery(
                 ComponentType.ReadOnly<TxAutotrophPetalMeshFlag>(),
                 ComponentType.ReadOnly<Prefab>()
-            ).ToEntityArray(Allocator.TempJob); 
-            
-            SproutFlowerStat job = new SproutFlowerStat() {
-                prefabPetalEntity = prefabPetalArray[0],
-                ecb=ecb
-            };
-            JobHandle jobHandle = job.Schedule(m_Group, inputDeps);
-            m_EndSimulationEcbSystem.AddJobHandleForProducer(jobHandle);
-            jobHandle.Complete();
+            ).ToEntityArray(Allocator.Persistent);
+            if (prefabPetalArray.Length > 0) {
+                SproutFlowerStat job = new SproutFlowerStat() {
+                    prefabPetalEntity = prefabPetalArray[0],
+                    ecb = ecb
+                };
+                inputDeps = job.Schedule(m_Group, inputDeps);
+                m_EndSimulationEcbSystem.AddJobHandleForProducer(inputDeps);
+                inputDeps.Complete();
+            }
+
             prefabPetalArray.Dispose();
-            return jobHandle;
+            return inputDeps;
         }
     }
 
