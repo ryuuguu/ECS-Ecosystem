@@ -581,7 +581,7 @@ namespace EcoSim {
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
                 var mRange = environmentSettings[0].txAutotrophConsts.mutationRange;
                 var bounds = environmentSettings[0].environmentConsts.bounds;
-                var heightScale = environmentSettings[0].environmentConsts.terrainHeightScale.y;
+                var heightScale = environmentSettings[0].environmentConsts.terrainHeightScale;
                 var mRangeH = 1 + mRange;
                 var mRangeL = 1 - mRange;
 
@@ -597,7 +597,7 @@ namespace EcoSim {
                     if (location.x > bounds.x && location.x < bounds.z &&
                         location.z > bounds.y && location.z < bounds.w) {
                         // do not know how to get height scale from terrain
-                        var height =heightScale*  Environment.TerrainValue(location,terrainHeight,bounds);
+                        var height = Environment.TerrainValue(location,terrainHeight,bounds,heightScale);
                         location.y = height;
                         //var e = ecb.CreateEntity(index);
                         var e = ecb.Instantiate(index, prefabSeedArray[0]);

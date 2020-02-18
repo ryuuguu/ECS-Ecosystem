@@ -403,7 +403,7 @@ namespace Tests {
             es.txAutotrophConsts.heightCostMultiple= 0;
             es.txAutotrophConsts.leafCostMultiple = 0;
             es.environmentConsts.bounds = new float4(-256,-256,256,256);
-            es.environmentConsts.terrainResolution = 513;
+            es.environmentConsts.terrainMaxHeight = 100;
             Environment.environmentSettings[0] = es;
             
             
