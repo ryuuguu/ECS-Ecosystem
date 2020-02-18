@@ -210,16 +210,19 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         }
         
         float[,] forTerrainData = new float[size,size];
-        var range = maxLight - minLight;
+        var scale =1/(maxLight - minLight);
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                localTerrainHeight[i*size+j] =
-                    (localTerrainLight[i*size+j] - minLight) / range;
-                forTerrainData[i,j] =  (localTerrainLight[i*size+j] - minLight) / range;
+                forTerrainData[i,j] = (localTerrainLight[i*size+j] - minLight) * scale;
+                localTerrainHeight[i * size + j] =
+                    forTerrainData[i, j] * environmentSettingsInput.environmentConsts.terrainMaxHeight;
+
+
             }
         }
+        Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
         environmentSettingsInput.environmentConsts.terrainHeightScale = new float3(mapScalingX,
-            environmentSettingsInput.environmentConsts.terrainMaxHeight/range, mapScalingZ);
+            scale, mapScalingZ);
         td.size = new Vector3(worldSizeX,  environmentSettingsInput.environmentConsts.terrainMaxHeight, worldSizeY);
         
         td.SetHeights(0,0, forTerrainData);
