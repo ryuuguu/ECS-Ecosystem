@@ -188,17 +188,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         var size = td.heightmapResolution ;
         var bounds = environmentSettingsInput.environmentConsts.bounds;
         var worldSizeX = (bounds.z - bounds.x);
-        var worldSizeY = (bounds.z - bounds.x);
+        var worldSizeY = (bounds.w - bounds.y);
         var mapScalingX = worldSizeX / size;
         var mapScalingZ = worldSizeY / size;
+        terrain.gameObject.transform.localPosition = new Vector3(bounds.x, 0, bounds.y);
         
-       
         localTerrainLight = new float[size*size];
         localTerrainHeight = new float[size*size];
         float maxLight =float.NegativeInfinity, minLight = float.PositiveInfinity ;
-
-
-        
         
         for (int i = 0; i< size; i++){
             for (int j = 0; j < size; j++) {
@@ -211,6 +208,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 localTerrainLight[i*size+j] = lightEnergy;
             }
         }
+        
         float[,] forTerrainData = new float[size,size];
         var range = maxLight - minLight;
         for (int i = 0; i < size; i++) {
