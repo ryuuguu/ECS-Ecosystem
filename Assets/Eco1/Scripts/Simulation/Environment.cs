@@ -232,7 +232,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public void MakeTerrainSine() {
         var td = terrain.terrainData;
         var size = td.heightmapResolution ;
-        var bounds = environmentSettingsInput.environmentConsts.bounds;
+        var bounds = es.environmentConsts.bounds;
         var worldSizeX = (bounds.z - bounds.x);
         var worldSizeY = (bounds.w - bounds.y);
         var mapScalingX = worldSizeX / size;
@@ -246,8 +246,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         for (int i = 0; i< size; i++){
             for (int j = 0; j < size; j++) {
                 var lightEnergy = Environment.HeightSine(new float3(i*mapScalingX, 0, j*mapScalingZ),
-                    environmentSettingsInput.environmentConsts.ambientLight,
-                    environmentSettingsInput.environmentConsts.variableLight
+                    es.environmentConsts.ambientLight,
+                    es.environmentConsts.variableLight
                 );
                 maxLight = Mathf.Max(lightEnergy, maxLight);
                 minLight = Mathf.Min(lightEnergy, minLight);
@@ -261,15 +261,16 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             for (int j = 0; j < size; j++) {
                 forTerrainData[i,j] = (localTerrainHeight[i*size+j] - minLight) * scale;
                 localTerrainHeight[i * size + j] =
-                    forTerrainData[i, j] * environmentSettingsInput.environmentConsts.terrainMaxHeight;
+                    forTerrainData[i, j] * environmentSettings[0].environmentConsts.terrainMaxHeight;
 
 
             }
         }
         Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
-        environmentSettingsInput.environmentConsts.terrainHeightScale = new float3(mapScalingX,
+        es.environmentConsts.terrainHeightScale = new float3(mapScalingX,
             scale, mapScalingZ);
-        td.size = new Vector3(worldSizeX,  environmentSettingsInput.environmentConsts.terrainMaxHeight, worldSizeY);
+        environmentSettings[0] = es;
+        td.size = new Vector3(worldSizeX,  es.environmentConsts.terrainMaxHeight, worldSizeY);
         terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
         td.SetHeights(0,0, forTerrainData);
     }
