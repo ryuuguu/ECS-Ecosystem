@@ -92,11 +92,21 @@ namespace EcoSim {
                 [ReadOnly] ref TxAutotrophPhenotype TxAutotrophPhenotype,
                 [ReadOnly] ref Shade shade
                 ) {
+                var bounds = environmentSettings[0].environmentConsts.bounds;
+                var heightScale = environmentSettings[0].environmentConsts.terrainScale;
+                var ambientLight = environmentSettings[0].environmentConsts.ambientLight;
+                var variableLight = environmentSettings[0].environmentConsts.variableLight;
+                
+                
                 energyStore.Value += 
+                    Environment.ResourceValue(translation.Value, ambientLight, variableLight,
+                        terrainLight,bounds,heightScale)
+                /*
                     Environment.HeightSine(translation.Value,
                         environmentSettings[0].environmentConsts.ambientLight,
                         environmentSettings[0].environmentConsts.variableLight
                         )
+                        */
                     *Environment.Fitness(TxAutotrophPhenotype.leaf) 
                     *TxAutotrophPhenotype.leaf/
                     (TxAutotrophPhenotype.leaf+shade.Value*
@@ -583,7 +593,7 @@ namespace EcoSim {
                 var mRate = environmentSettings[0].txAutotrophConsts.mutationRate;
                 var mRange = environmentSettings[0].txAutotrophConsts.mutationRange;
                 var bounds = environmentSettings[0].environmentConsts.bounds;
-                var heightScale = environmentSettings[0].environmentConsts.terrainHeightScale;
+                var heightScale = environmentSettings[0].environmentConsts.terrainScale;
                 var mRangeH = 1 + mRange;
                 var mRangeL = 1 - mRange;
 

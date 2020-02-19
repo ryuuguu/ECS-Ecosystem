@@ -45,16 +45,18 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return ambientLight+(position.x/512) * (variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
     }
 
-    public static float ResourceValue(float3 position,float ambientLight, float variableAmount,
+    public static float ResourceValue(float3 position,float ambientResource, float variableResource,
         NativeArray<float> valueArray, float4 bounds, float3 scale) {
         var tv = TerrainValue(position, valueArray, bounds, scale);
-        return ambientLight+ variableAmount*tv;
+        //Debug.Log("ResourceValue: " +tv + " Loc:" + position + " var:" + variableResource);
+        return ambientResource+ variableResource*tv;
     }
     
     public static float TerrainValue(float3 position, NativeArray<float> valueArray, float4 bounds, float3 scale) {
         var x = (int) ((position.x - bounds.x)/scale.x); //I think this truncates towards 0
         var y = (int) ((position.z - bounds.y)/scale.z);
-        var index = x * (int) ((bounds.w - bounds.y+1)/scale.z) + y;
+        var index = x * (int) ((bounds.w - bounds.y)/scale.z) + y;
+        // remove the +1 afterbounds.y
  //       Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
  //                 + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -98,10 +100,10 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             case 0:
                 lightNRGCamera.gameObject.SetActive(true);
                 break;
-            case 1 :
+            case 2 :
                 MakeLightArray();
                 break;
-            case 2:
+            case 4:
                 lightNRGCamera.gameObject.SetActive(false);
                 break;
             case 6:
@@ -113,19 +115,27 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     private void MakeLightArray() {
         var prevActive = RenderTexture.active;
         var rt = lightNRGCamera.targetTexture;
+        lightNRGCamera.Render();
         RenderTexture.active = rt;
-        var tex = new Texture2D(rt.width, rt.height);
+        var tex = new Texture2D(rt.width, rt.height,TextureFormat.RGBA32,false);
         tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+        tex.Apply();
         var colorArray = tex.GetPixels();
         // scale later after it working with matching scales
         if (localTerrainLight.Length != colorArray.Length) {
             Debug.LogWarning("localTerrainLight.Length: "+ localTerrainLight.Length + 
                              " colorArray.Length: " + colorArray.Length);
         }
+
+        float minDebug = 1;
+        float maxDebug = 0;
         for(int i =0; i< colorArray.Length;i++) {
             var c = colorArray[i];
-            localTerrainLight[i] = (c.r + c.b + c.g) / 3;
+            localTerrainLight[i] = (c.r + c.b + c.g) /3;
+            minDebug = math.min(minDebug, localTerrainLight[i]);
+            maxDebug = math.max(maxDebug, localTerrainLight[i]);
         }
+        Debug.Log("light: "+minDebug +" : "+ maxDebug );
         terrainLight = new NativeArray<float>(localTerrainLight, Allocator.Persistent);
         RenderTexture.active = prevActive;
     }
@@ -160,7 +170,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             i %= TxAutotrophChrome2.LENGTH;
             var position = new Vector3(startPos.x, 0, startPos.y);
             position.y = TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds,
-                             environmentSettings[0].environmentConsts.terrainHeightScale
+                             environmentSettings[0].environmentConsts.terrainScale
                              );
             
             var entity = em.CreateEntity();
@@ -223,7 +233,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float variableLight;
         public float4 bounds;
         public float terrainMaxHeight;
-        public float3 terrainHeightScale;
+        public float3 terrainScale;
         public int2 flowerStatsSize;
     }
     
@@ -267,7 +277,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             }
         }
         Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
-        es.environmentConsts.terrainHeightScale = new float3(mapScalingX,
+        es.environmentConsts.terrainScale = new float3(mapScalingX,
             scale, mapScalingZ);
         environmentSettings[0] = es;
         td.size = new Vector3(worldSizeX,  es.environmentConsts.terrainMaxHeight, worldSizeY);
