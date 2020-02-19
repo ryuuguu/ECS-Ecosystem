@@ -13,6 +13,8 @@ using Random = Unity.Mathematics.Random;
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     public Terrain terrain;
+    public Camera lightNRGCamera;
+    //public Texture2D lightNrgTexture;
     
     
     public static NativeArray< EnvironmentSettings> environmentSettings;
@@ -39,12 +41,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return ambientLight+ (variableLight/200)*(math.abs(position.x+position.z));
     }
     
-    public static float LightEnergySine(float3 position, float ambientLight, float variableLight) {
-        return ambientLight+(position.x/512) *(variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
+    public static float HeightSine(float3 position, float ambientLight, float variableLight) {
+        return ambientLight+(position.x/512) * (variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
     }
 
-    public static float LightEnergy(float3 position, float ambientLight, float variableLight) {
-        return ambientLight+ (variableLight/2)*((position.x+position.z)/200);
+    public static float ResourceValue(float3 position,float ambientLight, float variableAmount,
+        NativeArray<float> valueArray, float4 bounds, float3 scale) {
+        var tv = TerrainValue(position, valueArray, bounds, scale);
+        return ambientLight+ variableAmount*tv;
     }
     
     public static float TerrainValue(float3 position, NativeArray<float> valueArray, float4 bounds, float3 scale) {
@@ -73,25 +77,67 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     protected Random random;
     
-
+    protected EntityManager em;
+    protected EnvironmentSettings es ;
     public void Start() {
         var esa = new EnvironmentSettings[1] {environmentSettingsInput};
         environmentSettings = new NativeArray<EnvironmentSettings>(esa,Allocator.Persistent);
-        terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
-        terrainLight = new NativeArray<float>(localTerrainLight, Allocator.Persistent);
+        
         //bounds = boundsInput;
         
         random = new Random(environmentSettingsInput.randomSeed);
-        var es = environmentSettings[0];
+        es = environmentSettings[0];
         es.random = new Random(random.NextUInt());
         environmentSettings[0] = es;
+        em = World.DefaultGameObjectInjectionWorld.EntityManager;
         MakeTerrainSine();
-        var em = World.DefaultGameObjectInjectionWorld.EntityManager;
+    }
+
+    private void Update() {
+        switch (Time.frameCount) {
+            case 0:
+                lightNRGCamera.gameObject.SetActive(true);
+                break;
+            case 1 :
+                MakeLightArray();
+                break;
+            case 2:
+                lightNRGCamera.gameObject.SetActive(false);
+                break;
+            case 6:
+                InitPlants();
+                break;
+        }
+    }
+
+    private void MakeLightArray() {
+        var prevActive = RenderTexture.active;
+        var rt = lightNRGCamera.targetTexture;
+        RenderTexture.active = rt;
+        var tex = new Texture2D(rt.width, rt.height);
+        tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+        var colorArray = tex.GetPixels();
+        // scale later after it working with matching scales
+        if (localTerrainLight.Length != colorArray.Length) {
+            Debug.LogWarning("localTerrainLight.Length: "+ localTerrainLight.Length + 
+                             " colorArray.Length: " + colorArray.Length);
+        }
+        for(int i =0; i< colorArray.Length;i++) {
+            var c = colorArray[i];
+            localTerrainLight[i] = (c.r + c.b + c.g) / 3;
+        }
+        terrainLight = new NativeArray<float>(localTerrainLight, Allocator.Persistent);
+        RenderTexture.active = prevActive;
+    }
+
+
+    public void InitPlants() {
         InitialPlants(em);
         statsFlowers =TxAutotrophStats.MakeFlowerStats(em,
             es.environmentConsts.bounds,
             es.environmentConsts.flowerStatsSize);
     }
+    
     
     private void OnDestroy() {
         environmentSettings.Dispose();
@@ -199,13 +245,13 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         
         for (int i = 0; i< size; i++){
             for (int j = 0; j < size; j++) {
-                var lightEnergy = Environment.LightEnergySine(new float3(i*mapScalingX, 0, j*mapScalingZ),
+                var lightEnergy = Environment.HeightSine(new float3(i*mapScalingX, 0, j*mapScalingZ),
                     environmentSettingsInput.environmentConsts.ambientLight,
                     environmentSettingsInput.environmentConsts.variableLight
                 );
                 maxLight = Mathf.Max(lightEnergy, maxLight);
                 minLight = Mathf.Min(lightEnergy, minLight);
-                localTerrainLight[i*size+j] = lightEnergy;
+                localTerrainHeight[i*size+j] = lightEnergy;
             }
         }
         
@@ -213,7 +259,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         var scale =1/(maxLight - minLight);
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                forTerrainData[i,j] = (localTerrainLight[i*size+j] - minLight) * scale;
+                forTerrainData[i,j] = (localTerrainHeight[i*size+j] - minLight) * scale;
                 localTerrainHeight[i * size + j] =
                     forTerrainData[i, j] * environmentSettingsInput.environmentConsts.terrainMaxHeight;
 
@@ -224,7 +270,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         environmentSettingsInput.environmentConsts.terrainHeightScale = new float3(mapScalingX,
             scale, mapScalingZ);
         td.size = new Vector3(worldSizeX,  environmentSettingsInput.environmentConsts.terrainMaxHeight, worldSizeY);
-        
+        terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
         td.SetHeights(0,0, forTerrainData);
     }
 
