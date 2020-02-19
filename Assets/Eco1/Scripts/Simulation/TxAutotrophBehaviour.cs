@@ -36,8 +36,8 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new TxAutotroph());
             dstManager.AddComponentData(entity, new EnergyStore() {Value = 0});
             dstManager.AddComponentData(entity, new TxAutotrophPhenotype {
-                leaf = 1,
-                height = 1,
+                leaf = 0,
+                height = 0,
                 seed = 0,
                 age = 0
             });
