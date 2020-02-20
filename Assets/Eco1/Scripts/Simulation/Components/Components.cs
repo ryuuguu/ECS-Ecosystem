@@ -21,8 +21,11 @@ namespace EcoSim {
         public float Value;
     }
 
-  
-    
+
+    public struct DebugDistances : IComponentData {
+        public float seedRange;
+        public float pollenRange;
+    }
     
     #endregion
     
