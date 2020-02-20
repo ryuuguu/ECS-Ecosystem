@@ -801,12 +801,14 @@ MonoBehaviour:
       flowerStatsSize:
         x: 10
         y: 10
-      sinXHeight: 5
-      sinYHeight: 3
-      sinXLength: 256
-      sinYLength: 512
-      heightArraySize: 1025
-      lightArraySize: 1025
+      sinXHeight: 2
+      sinYHeight: 4
+      sinXLength: 128
+      sinYLength: 128
+      sinXShift: 3.14
+      sinYShift: 3.14
+      heightArraySize: 129
+      lightArraySize: 129
   initialGridSize:
     x: 5
     y: 5

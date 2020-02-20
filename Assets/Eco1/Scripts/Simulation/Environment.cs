@@ -40,8 +40,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
     
     public static float HeightSine(float3 position, EnvironmentConsts ec) {
-        return ec.sinXHeight * math.sin(position.x / ec.sinXLength) +
-               ec.sinYHeight * math.sin(position.y / ec.sinYLength);
+        return ec.sinXHeight * (math.sin(ec.sinXShift+ position.x / ec.sinXLength)) +
+               ec.sinYHeight * (math.sin(ec.sinYShift+ position.z / ec.sinYLength));
     }
 
     public static float HeightFlat(float3 position, EnvironmentConsts ec) {
@@ -263,6 +263,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float sinYHeight;
         public float sinXLength;
         public float sinYLength;
+        public float sinXShift;
+        public float sinYShift;
         public int heightArraySize;
         public int lightArraySize;
     }
@@ -308,14 +310,10 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             {
                 //Note forTerrainData i & j are swapped because terrain space is rotated
                 forTerrainData[j,i] = (localTerrainHeight[i*size+j] - minLight) * scale;
-                if (forTerrainData[i, j] < 0 || forTerrainData[i, j] > 1) {
-                    Debug.LogError("forTerrainData: "+ i + ":"+j + "  ::  "+forTerrainData[i,j] );
-                }
+                
                 localTerrainHeight[i * size + j] =
-                    forTerrainData[j,i] * environmentSettings[0].environmentConsts.terrainMaxHeight;
-                if (float.IsNaN(localTerrainHeight[i * size + j]) ) {
-                    Debug.LogError("localTerrainHeight: "+ i + ":"+j + " index:"+ (i * size + j) +"  ::  "+localTerrainHeight[i * size + j] );
-                }
+                    forTerrainData[j,i] * es.environmentConsts.terrainMaxHeight;
+                
             }
         }
         Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
