@@ -107,7 +107,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         es.random = new Random(random.NextUInt());
         environmentSettings[0] = es;
         em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        MakeTerrainSine();
+        MakeTerrainHeight();
     }
 
     private void Update() {
@@ -271,8 +271,11 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     
     [ContextMenu("make Terrain")]
-    public void MakeTerrainSine() {
+    public void MakeTerrainHeight() {
         var td = terrain.terrainData;
+        if (!Application.isPlaying) {
+            es = environmentSettingsInput;
+        }
         
         td.heightmapResolution = es.environmentConsts.heightArraySize;
         var size = es.environmentConsts.heightArraySize;
@@ -316,12 +319,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 
             }
         }
-        Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
+        //Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
+        td.size = new Vector3(worldSizeX,  es.environmentConsts.terrainMaxHeight, worldSizeY);
         es.environmentConsts.terrainScale = new float3(mapScalingX,
             scale, mapScalingZ);
-        environmentSettings[0] = es;
-        td.size = new Vector3(worldSizeX,  es.environmentConsts.terrainMaxHeight, worldSizeY);
-        terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
+        if (Application.isPlaying) {
+            environmentSettings[0] = es;
+            terrainHeight = new NativeArray<float>(localTerrainHeight, Allocator.Persistent);
+        }
         td.SetHeights(0,0, forTerrainData);
     }
 
