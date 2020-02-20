@@ -36,8 +36,8 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new TxAutotroph());
             dstManager.AddComponentData(entity, new EnergyStore() {Value = 0});
             dstManager.AddComponentData(entity, new TxAutotrophPhenotype {
-                leaf = 0,
-                height = 0,
+                leaf = 1f,
+                height = 1f,
                 seed = 0,
                 age = 0
             });
@@ -97,16 +97,9 @@ namespace EcoSim {
                 var ambientLight = environmentSettings[0].environmentConsts.ambientLight;
                 var variableLight = environmentSettings[0].environmentConsts.variableLight;
                 
-                
                 energyStore.Value += 
                     Environment.ResourceValue(translation.Value, ambientLight, variableLight,
                         terrainLight,bounds,heightScale)
-                /*
-                    Environment.HeightSine(translation.Value,
-                        environmentSettings[0].environmentConsts.ambientLight,
-                        environmentSettings[0].environmentConsts.variableLight
-                        )
-                        */
                     *Environment.Fitness(TxAutotrophPhenotype.leaf) 
                     *TxAutotrophPhenotype.leaf/
                     (TxAutotrophPhenotype.leaf+shade.Value*
@@ -573,7 +566,7 @@ namespace EcoSim {
                     bool mutate = rate < random.NextFloat(0, 1);
                     if (mutate) {
                         var mutant = math.max(1,val * random.NextFloat(rangeL, rangeH));
-                        return mutant;
+                        return math.max(1,mutant);
                     } else {
                         return val;
                     }

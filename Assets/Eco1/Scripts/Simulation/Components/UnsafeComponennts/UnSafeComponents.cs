@@ -161,7 +161,6 @@ public struct TxAutotrophChrome2AB : IComponentData{
         for (int i = b; i < TxAutotrophChrome2.LENGTH; i++) {
             result[i] = ValueA[i];
         }
-
         return result;
     }
 
@@ -181,9 +180,6 @@ public struct TxAutotrophChrome2AB : IComponentData{
         var d = math.min(1,math.max(0,  sum/maxDistanceSq));
         return d;
     }
-    
-   
-    
 }
 
 
@@ -198,7 +194,6 @@ public struct TxAutotrophChrome2Stats : IComponentData{
         }
         return result;
     }
-    
 }
 
 

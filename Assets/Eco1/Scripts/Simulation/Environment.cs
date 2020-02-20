@@ -14,9 +14,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     public Terrain terrain;
     public Camera lightNRGCamera;
-    //public Texture2D lightNrgTexture;
-    
-    
+
     public static NativeArray< EnvironmentSettings> environmentSettings;
     public static  NativeArray<float> terrainHeight;
     public static NativeArray<float> terrainLight;
@@ -41,8 +39,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         return ambientLight+ (variableLight/200)*(math.abs(position.x+position.z));
     }
     
-    public static float HeightSine(float3 position, float ambientLight, float variableLight) {
-        return ambientLight+(position.x/512) * (variableLight/2)*(math.sin(position.x/50)+math.sin(position.z/50));
+    public static float HeightSine(float3 position, EnvironmentConsts ec) {
+        return ec.sinXHeight * math.sin(position.x / ec.sinXLength) +
+               ec.sinYHeight * math.sin(position.y / ec.sinYLength);
     }
 
     public static float ResourceValue(float3 position,float ambientResource, float variableResource,
@@ -55,13 +54,18 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public static float TerrainValue(float3 position, NativeArray<float> valueArray, float4 bounds, float3 scale) {
         var x = (int) ((position.x - bounds.x)/scale.x); //I think this truncates towards 0
         var y = (int) ((position.z - bounds.y)/scale.z);
-        var index = x * (int) ((bounds.w - bounds.y)/scale.z) + y;
+        var index = x * (int) ((bounds.w - bounds.y+1)/scale.z) + y;
         // remove the +1 afterbounds.y
  //       Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
  //                 + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         if (index< 0 || index >=valueArray.Length ) {
-            throw new System.ArgumentException("get index must be in "+ bounds +  " was " + index + ":" +position);
+            throw new System.ArgumentException("get index must be in "+ bounds +  " was " + index 
+                                               + ":" +position + " Scale:"+scale+"   " + x + ":"+y +
+                                               " b:" +(bounds.w - bounds.y+1) + " b2:" 
+                                               + (int) ((bounds.w - bounds.y+1)/scale.z)
+                                               
+                                               );
         }
 #endif
 
@@ -72,7 +76,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     
     //public static float4 bounds;
     
-    public Vector2[] startPositions ;
+    public int2 initialGridSize = new int2(4,4) ;
    // public float4 boundsInput;
     public GameObject prefabPlant;
     public TxAutotrophChrome1AB txAutotrophChrome1Ab;
@@ -114,13 +118,19 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
 
     private void MakeLightArray() {
         var prevActive = RenderTexture.active;
-        var rt = lightNRGCamera.targetTexture;
+        lightNRGCamera.enabled = true;
+        RenderTexture tempRT = RenderTexture.GetTemporary(es.environmentConsts.lightArraySize,
+            es.environmentConsts.lightArraySize); 
+        lightNRGCamera.targetTexture = tempRT;
         lightNRGCamera.Render();
-        RenderTexture.active = rt;
-        var tex = new Texture2D(rt.width, rt.height,TextureFormat.RGBA32,false);
+        RenderTexture.active = tempRT;
+        var tex = new Texture2D(tempRT.width, tempRT.height,TextureFormat.RGBA32,false);
         tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
         tex.Apply();
+        lightNRGCamera.enabled = false;
+        RenderTexture.ReleaseTemporary(tempRT);
         var colorArray = tex.GetPixels();
+        
         // scale later after it working with matching scales
         if (localTerrainLight.Length != colorArray.Length) {
             Debug.LogWarning("localTerrainLight.Length: "+ localTerrainLight.Length + 
@@ -157,38 +167,40 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     }
 
     public void InitialPlants( EntityManager em) {
-        float3[]  colors = new [] {
-            new float3(1,-1,-1),
-            new float3(-1,1,-1),
-            new float3(-1,-1,1),
-            new float3(1,1,-1),
-        };
-        int i = 0;
-        
-        foreach (var startPos in startPositions) {
-            i++;
-            i %= TxAutotrophChrome2.LENGTH;
-            var position = new Vector3(startPos.x, 0, startPos.y);
-            position.y = TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds,
-                             environmentSettings[0].environmentConsts.terrainScale
-                             );
-            
-            var entity = em.CreateEntity();
-            em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
-            em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
+        var bounds = environmentSettings[0].environmentConsts.bounds;
+        var startX = bounds.x;
+        var startY = bounds.y;
+        var incrX = (bounds.z - bounds.x) / initialGridSize.x;
+        var incrY = (bounds.w - bounds.y) / initialGridSize.x;
 
-            var chrome1AB = txAutotrophChrome1Ab.RandomRange(ref random);
-            em.AddComponentData(entity, new TxAutotrophGamete {isFertilized = true,txAutotrophChrome1AB = chrome1AB});
-            em.AddComponentData(entity, chrome1AB);
-            em.AddComponentData(entity, chrome1AB.GetChrome1W());
-            var chrome2 = new TxAutotrophChrome2();
-            for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
-                chrome2[j] = 50;
+        for (float x = bounds.x; x < bounds.z; x += incrX) {
+            for (float y = bounds.y; y < bounds.w; y += incrY) {
+                
+
+                var position = new Vector3(x, 0, y);
+                position.y = TerrainValue(position, terrainHeight, environmentSettings[0].environmentConsts.bounds,
+                    environmentSettings[0].environmentConsts.terrainScale
+                );
+
+                var entity = em.CreateEntity();
+                em.AddComponentData(entity, new RandomComponent {random = new Random(random.NextUInt())});
+                em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
+
+                var chrome1AB = txAutotrophChrome1Ab.RandomRange(ref random);
+                em.AddComponentData(entity,
+                    new TxAutotrophGamete {isFertilized = true, txAutotrophChrome1AB = chrome1AB});
+                em.AddComponentData(entity, chrome1AB);
+                em.AddComponentData(entity, chrome1AB.GetChrome1W());
+                var chrome2 = new TxAutotrophChrome2();
+                for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
+                    chrome2[j] = 50;
+                }
+                //chrome2[i] = 25;
+
+                em.AddComponentData(entity, new TxAutotrophChrome2AB {ValueA = chrome2, ValueB = chrome2});
             }
-            //chrome2[i] = 25;
-            
-            em.AddComponentData(entity, new TxAutotrophChrome2AB{ValueA = chrome2, ValueB = chrome2} );
         }
+
     }
     
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs) {
@@ -232,21 +244,30 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float ambientLight;
         public float variableLight;
         public float4 bounds;
+        
         public float terrainMaxHeight;
         public float3 terrainScale;
         public int2 flowerStatsSize;
+        public float sinXHeight;
+        public float sinYHeight;
+        public float sinXLength;
+        public float sinYLength;
+        public int heightArraySize;
+        public int lightArraySize;
     }
     
     
     [ContextMenu("make Terrain")]
     public void MakeTerrainSine() {
         var td = terrain.terrainData;
-        var size = td.heightmapResolution ;
+        
+        td.heightmapResolution = es.environmentConsts.heightArraySize;
+        var size = es.environmentConsts.heightArraySize;
         var bounds = es.environmentConsts.bounds;
         var worldSizeX = (bounds.z - bounds.x);
         var worldSizeY = (bounds.w - bounds.y);
-        var mapScalingX = worldSizeX / size;
-        var mapScalingZ = worldSizeY / size;
+        var mapScalingX = (worldSizeX+1) / size;
+        var mapScalingZ = (worldSizeY+1) / size;
         terrain.gameObject.transform.localPosition = new Vector3(bounds.x, 0, bounds.y);
         
         localTerrainLight = new float[size*size];
@@ -256,8 +277,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         for (int i = 0; i< size; i++){
             for (int j = 0; j < size; j++) {
                 var lightEnergy = Environment.HeightSine(new float3(i*mapScalingX, 0, j*mapScalingZ),
-                    es.environmentConsts.ambientLight,
-                    es.environmentConsts.variableLight
+                    es.environmentConsts
                 );
                 maxLight = Mathf.Max(lightEnergy, maxLight);
                 minLight = Mathf.Min(lightEnergy, minLight);
@@ -271,9 +291,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
             for (int j = 0; j < size; j++) {
                 forTerrainData[i,j] = (localTerrainHeight[i*size+j] - minLight) * scale;
                 localTerrainHeight[i * size + j] =
-                    forTerrainData[i, j] * environmentSettings[0].environmentConsts.terrainMaxHeight;
-
-
+                    forTerrainData[i,j] * environmentSettings[0].environmentConsts.terrainMaxHeight;
             }
         }
         Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
