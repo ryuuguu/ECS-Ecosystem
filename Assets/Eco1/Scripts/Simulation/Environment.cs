@@ -44,6 +44,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                ec.sinYHeight * math.sin(position.y / ec.sinYLength);
     }
 
+    public static float HeightFlat(float3 position, EnvironmentConsts ec) {
+        return ec.sinXHeight ;
+    }
+    
+    public static float HeightSlopeX(float3 position, EnvironmentConsts ec) {
+        return ec.sinXHeight* position.x ;
+    }
+    
     public static float ResourceValue(float3 position,float ambientResource, float variableResource,
         NativeArray<float> valueArray, float4 bounds, float3 scale) {
         var tv = TerrainValue(position, valueArray, bounds, scale);
@@ -55,6 +63,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         var x = (int) ((position.x - bounds.x)/scale.x); //I think this truncates towards 0
         var y = (int) ((position.z - bounds.y)/scale.z);
         var index = x * (int) ((bounds.w - bounds.y+1)/scale.z) + y;
+        if (float.IsNaN(valueArray[index])) {
+            Debug.LogError("TerrainValue " + position + " : "+ x +":"+ y + " ::"+  valueArray[index]);
+        }
         // remove the +1 afterbounds.y
  //       Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
  //                 + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
@@ -286,12 +297,25 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         }
         
         float[,] forTerrainData = new float[size,size];
-        var scale =1/(maxLight - minLight);
+        float scale = 1;
+        if((maxLight - minLight) != 0) {
+            scale =1/(maxLight - minLight);
+            
+        }
+        
         for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                forTerrainData[i,j] = (localTerrainHeight[i*size+j] - minLight) * scale;
+            for (int j = 0; j < size; j++)
+            {
+                //Note forTerrainData i & j are swapped because terrain space is rotated
+                forTerrainData[j,i] = (localTerrainHeight[i*size+j] - minLight) * scale;
+                if (forTerrainData[i, j] < 0 || forTerrainData[i, j] > 1) {
+                    Debug.LogError("forTerrainData: "+ i + ":"+j + "  ::  "+forTerrainData[i,j] );
+                }
                 localTerrainHeight[i * size + j] =
-                    forTerrainData[i,j] * environmentSettings[0].environmentConsts.terrainMaxHeight;
+                    forTerrainData[j,i] * environmentSettings[0].environmentConsts.terrainMaxHeight;
+                if (float.IsNaN(localTerrainHeight[i * size + j]) ) {
+                    Debug.LogError("localTerrainHeight: "+ i + ":"+j + " index:"+ (i * size + j) +"  ::  "+localTerrainHeight[i * size + j] );
+                }
             }
         }
         Debug.Log("map scale: "+ scale + " max: "+(maxLight - minLight) * scale );
