@@ -29,8 +29,16 @@ public class TxAutotrophStats  {
     public static int FlowerStatIndex(float3 location, float4 bounds, int2 statsSize) {
         var width = (bounds.z - bounds.x) / statsSize.x;
         var height = (bounds.w - bounds.y) / statsSize.y;
-        return ((int) math.floor((location.x - bounds.x) / width)) * statsSize.y +
-            ((int) math.floor((location.z - bounds.y) / width));
+        var index =  ((int) math.floor((location.x - bounds.x) / width)) * statsSize.y +
+                     ((int) math.floor((location.z - bounds.y) / height));
+        
+        if (index > 1 + statsSize.x * statsSize.y) {
+            Debug.LogError("FlowerStatIndex: "+ location + " b:"+  bounds + " s:" + statsSize +
+                     " x:"+((int) math.floor((location.x - bounds.x) / width)) +
+                     " y:"+((int) math.floor((location.z - bounds.y) / height)) );
+        }
+        
+        return index ;
     }
     
     

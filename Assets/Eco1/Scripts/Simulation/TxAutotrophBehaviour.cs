@@ -617,9 +617,9 @@ namespace EcoSim {
                               * txAutotrophPhenotype.height / txAutotrophChrome1W.Value.seedSize;
 
                     var location = translation.Value + new float3(loc.x, 0, loc.y);
-                    if (location.x > bounds.x && location.x < bounds.z &&
-                        location.z > bounds.y && location.z < bounds.w) {
-                        // do not know how to get height scale from terrain
+                    //too close to edge rounding errors can cause out of index  range errors
+                    if (location.x > bounds.x+0.5f && location.x < bounds.z-0.5f &&
+                        location.z > bounds.y+0.5f && location.z < bounds.w-0.5f) {
                         var height = Environment.TerrainValue(location, terrainHeight, bounds, heightScale);
                         location.y = height;
                         //var e = ecb.CreateEntity(index);
