@@ -58,6 +58,7 @@ namespace EcoSim {
             dstManager.AddComponentData(entity, new TxAutotrophMeshes {
                 stem = entity,
             });
+            dstManager.AddComponentData(entity, new TxAutotrophParts { });
             dstManager.AddComponentData(entity, new DebugDistances { });
 
         }
@@ -131,7 +132,7 @@ namespace EcoSim {
             m_Group = GetEntityQuery(ComponentType.ReadWrite<EnergyStore>(),
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophMeshes>()
+                ComponentType.ReadOnly<TxAutotrophParts>()
             );
            petalGroup = GetEntityQuery(
                ComponentType.ReadOnly<EnergyStore>(),
@@ -142,7 +143,7 @@ namespace EcoSim {
         }
 
         struct PayMaintenance : IJobForEachWithEntity<EnergyStore, TxAutotrophPhenotype,
-            TxAutotrophChrome1W, TxAutotrophMeshes> {
+            TxAutotrophChrome1W, TxAutotrophParts> {
             [ReadOnly] public NativeArray<Environment.EnvironmentSettings> environmentSettings;
 
             public EntityCommandBuffer.Concurrent ecb;
@@ -150,7 +151,7 @@ namespace EcoSim {
             public void Execute(Entity entity, int index, ref EnergyStore energyStore,
                 ref TxAutotrophPhenotype txAutotrophPhenotype,
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
-                [ReadOnly] ref TxAutotrophMeshes txAutotrophMeshes) {
+                [ReadOnly] ref TxAutotrophParts txAutotrophParts) {
 
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
 
@@ -176,7 +177,7 @@ namespace EcoSim {
                 };
                 if (energyStore.Value < 0) {
                     ecb.DestroyEntity(index, entity);
-                    ecb.DestroyEntity(index, txAutotrophMeshes.pollen);
+                    ecb.DestroyEntity(index, txAutotrophParts.pollen);
                 }
             }
         }
@@ -240,7 +241,7 @@ namespace EcoSim {
                 ComponentType.ReadWrite<TxAutotrophPhenotype>(),
                 ComponentType.ReadWrite<Scale>(),
                 ComponentType.ReadOnly<TxAutotrophChrome1W>(),
-                ComponentType.ReadOnly<TxAutotrophMeshes>(),
+                ComponentType.ReadOnly<TxAutotrophParts>(),
                 ComponentType.ReadOnly<Translation>()
             );
             petalGroup = GetEntityQuery(
@@ -254,7 +255,7 @@ namespace EcoSim {
         }
 
         struct Grow : IJobForEachWithEntity<EnergyStore, TxAutotrophPhenotype, Scale,
-            TxAutotrophChrome1W, TxAutotrophMeshes, Translation> {
+            TxAutotrophChrome1W, TxAutotrophParts, Translation> {
             [ReadOnly] public NativeArray<Environment.EnvironmentSettings> environmentSettings;
 
             public EntityCommandBuffer.Concurrent ecb;
@@ -263,7 +264,7 @@ namespace EcoSim {
                 ref TxAutotrophPhenotype txAutotrophPhenotype,
                 ref Scale scale,
                 [ReadOnly] ref TxAutotrophChrome1W txAutotrophChrome1W,
-                [ReadOnly] ref TxAutotrophMeshes txAutotrophMeshes,
+                [ReadOnly] ref TxAutotrophParts txAutotrophParts,
                 [ReadOnly] ref Translation translation
             ) {
                 var txAutotrophConsts = environmentSettings[0].txAutotrophConsts;
@@ -294,7 +295,7 @@ namespace EcoSim {
                         txAutotrophPhenotype.height + txAutotrophChrome1W.Value.pollenRange *
                         txAutotrophConsts.pollenRadiusMultiplier);
 
-                    ecb.SetComponent(index, txAutotrophMeshes.pollen, new PhysicsCollider {
+                    ecb.SetComponent(index, txAutotrophParts.pollen, new PhysicsCollider {
                         Value = Unity.Physics.SphereCollider.Create(
                             new SphereGeometry {
                                 Center = float3.zero,
@@ -475,6 +476,7 @@ namespace EcoSim {
                     });
 
                     ecb.SetComponent(index, sprout, new Translation() {Value = pos});
+                    ecb.SetComponent(index, sprout, new TxAutotrophParts {pollen = pollen});
                     
                         var petal0 = ecb.Instantiate(index, prefabPetalEntity);
                         var petal1 = ecb.Instantiate(index, prefabPetalEntity);
@@ -513,7 +515,6 @@ namespace EcoSim {
                             petal3 = petal3,
                             petal4 = petal4,
                             petal5 = petal5,
-                            pollen = pollen
                         });
                     
 

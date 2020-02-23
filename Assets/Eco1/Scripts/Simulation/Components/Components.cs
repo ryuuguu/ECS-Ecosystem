@@ -44,7 +44,7 @@ namespace EcoSim {
         public Entity petal3;
         public Entity petal4;
         public Entity petal5;
-        public Entity pollen;
+       // public Entity pollen;
     }
 
     public struct TxAutotrophParts : IComponentData {
