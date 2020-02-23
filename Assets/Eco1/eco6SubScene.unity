@@ -34285,7 +34285,7 @@ MonoBehaviour:
       heightArraySize: 129
       lightArraySize: 129
     graphicsSettings:
-      petals: 1
+      petals: 0
       leaves: 0
       stems: 1
   initialGridSize:
