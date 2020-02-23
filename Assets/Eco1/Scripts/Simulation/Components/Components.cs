@@ -46,12 +46,13 @@ namespace EcoSim {
         public Entity petal5;
        // public Entity pollen;
     }
+    
 
     public struct TxAutotrophParts : IComponentData {
         public Entity pollen;
     }
     
-    public struct TxAutotrophMain : IComponentData {
+    public struct TxAutotrophPetal : IComponentData {
         public Entity Value;
     }
 
@@ -67,5 +68,9 @@ namespace EcoSim {
         public float energy;
     }
 
+    public struct TxAutotrophCacheYPos : IComponentData {
+        public float y;
+    }
+    
     #endregion 
 }
