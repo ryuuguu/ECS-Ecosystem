@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine.Assertions.Comparers;
-using UnityEngine.UIElements;
+
 
 
 [System.Serializable]
@@ -102,7 +100,7 @@ public struct TxAutotrophChrome1 {
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((uint)index >= LENGTH)
-                throw new System.ArgumentException("get index must be between[0...23] was "+ index );
+                throw new System.ArgumentException("get index must be between[0...9] was "+ index );
 #endif
             fixed (TxAutotrophChrome1* array = &this) { return ((float*)array)[index]; }
         }
@@ -110,7 +108,7 @@ public struct TxAutotrophChrome1 {
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if ((uint)index >= LENGTH)
-                throw new System.ArgumentException("set index must be between[0...23] was " + index);
+                throw new System.ArgumentException("set index must be between[0...9] was " + index);
 #endif
             fixed (float* array = &nrg2Leaf) { array[index] = value; }
         }

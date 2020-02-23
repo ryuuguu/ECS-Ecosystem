@@ -5,25 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: f05fdaec0e58f4b9cb7cbc815696286a
-  - enabled: 0
-    path: 
-    guid: b292abe8630d8436c918377aae789b35
-  - enabled: 0
-    path: 
-    guid: 969447f91db764a97b029fba2f35208d
-  - enabled: 0
-    path: 
-    guid: 5a01c9e0e16c74047806f922f84e8231
-  - enabled: 0
-    path: 
-    guid: ef0afe639440d864e9719319a895e42f
-  - enabled: 0
-    path: 
-    guid: d5f3505c0b377452db53363d84547627
   - enabled: 1
-    path: 
-    guid: 4c03f301f9df8431db822afdde586cc6
+    path: Assets/Eco1/eco6SubScene.unity
+    guid: 61fc9a85d08114b8a9d519d1605ac479
   m_configObjects: {}

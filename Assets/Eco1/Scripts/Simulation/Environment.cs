@@ -1,16 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using EcoSim;
 using Unity.Collections;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
-using UnityEngine.Assertions.Must;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 using Random = Unity.Mathematics.Random;
 
 public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
+
+
+    public Text frameCount;
+    public Text entityCount;
     
     public Terrain terrain;
     public Camera lightNRGCamera;
@@ -63,9 +66,9 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         var x = (int) ((position.x - bounds.x)/scale.x); //I think this truncates towards 0
         var y = (int) ((position.z - bounds.y)/scale.z);
         var index = x * (int) ((bounds.w - bounds.y+1)/scale.z) + y;
-        if (float.IsNaN(valueArray[index])) {
-            Debug.LogError("TerrainValue " + position + " : "+ x +":"+ y + " ::"+  valueArray[index]);
-        }
+       // if (float.IsNaN(valueArray[index])) {
+       //     Debug.LogError("TerrainValue " + position + " : "+ x +":"+ y + " ::"+  valueArray[index]);
+      //  }
         // remove the +1 afterbounds.y
  //       Debug.Log("TerrainValue " + position + " : "+ x +":"+ y + " size: "
  //                 + (int) (bounds.w - bounds.y+1) + " : " +index +  " : "+valueArray[index]);
@@ -99,7 +102,6 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
     public void Start() {
         var esa = new EnvironmentSettings[1] {environmentSettingsInput};
         environmentSettings = new NativeArray<EnvironmentSettings>(esa,Allocator.Persistent);
-        
         //bounds = boundsInput;
         
         random = new Random(environmentSettingsInput.randomSeed);
@@ -125,11 +127,21 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 InitPlants();
                 break;
         }
+
+        frameCount.text = "Frames: " + Time.frameCount;
+        var countArray= em.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophPhenotype>())
+            .ToEntityArray(Allocator.TempJob);
+        entityCount.text = "Entities: " + countArray.Length;
+        countArray.Dispose();
     }
 
     private void MakeLightArray() {
         var prevActive = RenderTexture.active;
         lightNRGCamera.enabled = true;
+        //second dem needs to be calculated from bounds ratio
+        //var bounds = es.environmentConsts.bounds;
+        //var x = es.environmentConsts.lightArraySize;
+        //var y =(int)( es.environmentConsts.lightArraySize*((bounds.w-bounds.y)/(bounds.z-bounds.x)));
         RenderTexture tempRT = RenderTexture.GetTemporary(es.environmentConsts.lightArraySize,
             es.environmentConsts.lightArraySize); 
         lightNRGCamera.targetTexture = tempRT;
@@ -166,7 +178,7 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         InitialPlants(em);
         statsFlowers =TxAutotrophStats.MakeFlowerStats(em,
             es.environmentConsts.bounds,
-            es.environmentConsts.flowerStatsSize);
+            es.environmentConsts.flowerStatsSize,128f);
     }
     
     
@@ -179,13 +191,11 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
 
     public void InitialPlants( EntityManager em) {
         var bounds = environmentSettings[0].environmentConsts.bounds;
-        var startX = bounds.x;
-        var startY = bounds.y;
-        var incrX = (bounds.z - bounds.x) / initialGridSize.x;
-        var incrY = (bounds.w - bounds.y) / initialGridSize.x;
+        var incrX = (bounds.z - bounds.x -1f) / initialGridSize.x;
+        var incrY = (bounds.w - bounds.y -1f) / initialGridSize.x;
 
-        for (float x = bounds.x; x < bounds.z; x += incrX) {
-            for (float y = bounds.y; y < bounds.w; y += incrY) {
+        for (float x = bounds.x+0.5f; x < bounds.z-0.5f; x += incrX) {
+            for (float y = bounds.y+0.5f; y < bounds.w-0.5f; y += incrY) {
                 
 
                 var position = new Vector3(x, 0, y);
@@ -224,6 +234,14 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public Random random;
         public TxAutotrophConsts txAutotrophConsts;
         public EnvironmentConsts environmentConsts;
+        public GraphicsSettings graphicsSettings;
+    }
+    
+    [Serializable]
+    public struct GraphicsSettings {
+        public bool petals;
+        public bool leaves;
+        public bool stems;
     }
     
     [Serializable]

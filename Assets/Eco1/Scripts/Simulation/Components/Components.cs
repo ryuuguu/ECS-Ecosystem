@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
+
 
 namespace EcoSim {
 
@@ -36,7 +35,7 @@ namespace EcoSim {
     }
 
     
-    public struct TxAutotrophParts : IComponentData {
+    public struct TxAutotrophMeshes : IComponentData {
         public Entity stem;
         public Entity leaf;
         public Entity petal0;
@@ -48,6 +47,13 @@ namespace EcoSim {
         public Entity pollen;
     }
 
+    public struct TxAutotrophParts : IComponentData {
+        public Entity pollen;
+    }
+    
+    public struct TxAutotrophMain : IComponentData {
+        public Entity Value;
+    }
 
     public struct TxAutotrophPhenotype : IComponentData {
         public float leaf;

@@ -4,14 +4,11 @@ using Unity.Physics.Systems;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine;
 using Unity.Burst;
-using System;
 using EcoSim;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEditor;
-using Math = System.Math;
+
 
 
 [BurstCompile]

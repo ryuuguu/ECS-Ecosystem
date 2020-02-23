@@ -131,7 +131,7 @@ namespace Tests {
             sprouts.Dispose();
             
             var stems = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
-                ComponentType.ReadOnly<TxAutotrophParts>()
+                ComponentType.ReadOnly<TxAutotrophMeshes>()
             ).ToEntityArray(Allocator.TempJob);
             Assert.AreEqual(1,stems.Length,"Stems count");
             
@@ -181,7 +181,7 @@ namespace Tests {
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
 
             var stems = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
-                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<TxAutotrophMeshes>(),
                 ComponentType.ReadOnly<EnergyStore>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Scale>(),
@@ -263,7 +263,7 @@ namespace Tests {
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
 
             var stems = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
-                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<TxAutotrophMeshes>(),
                 ComponentType.ReadOnly<EnergyStore>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Scale>(),
@@ -376,7 +376,7 @@ namespace Tests {
             //testing death
             World.GetOrCreateSystem<BeginPresentationEntityCommandBufferSystem>().Update();
             var stemDead = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
-                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<TxAutotrophMeshes>(),
                 ComponentType.ReadOnly<EnergyStore>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Scale>(),
@@ -411,7 +411,7 @@ namespace Tests {
             World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().Update();
 
             var stems = m_Manager.CreateEntityQuery(ComponentType.ReadOnly<TxAutotroph>(),
-                ComponentType.ReadOnly<TxAutotrophParts>(),
+                ComponentType.ReadOnly<TxAutotrophMeshes>(),
                 ComponentType.ReadOnly<EnergyStore>(),
                 ComponentType.ReadOnly<TxAutotrophPhenotype>(),
                 ComponentType.ReadOnly<Scale>(),

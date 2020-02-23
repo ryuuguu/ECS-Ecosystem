@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using EcoSim;
+﻿
 using Unity.Burst;
 using Unity.Collections;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine.Serialization;
+
 using Unity.Jobs;
 using Unity.Rendering;
 
@@ -42,15 +39,15 @@ public class TxAutotrophStats  {
     }
     
     
-   public static NativeArray<Entity> MakeFlowerStats( EntityManager em, float4 bounds, int2 statsSize) {
+   public static NativeArray<Entity> MakeFlowerStats( EntityManager em, float4 bounds, int2 statsSize, float offset) {
       var width = (bounds.z - bounds.x) / statsSize.x;
       var height = (bounds.w - bounds.y) / statsSize.y;
       NativeArray<Entity> result = new NativeArray<Entity>(statsSize.x*statsSize.y,Allocator.Persistent);
       for (float i = 0; i < statsSize.x; i++) {
          for (float j = 0; j < statsSize.y; j++) {
              var index = (int) (i * statsSize.y + j);
-           result[index]= MakeFlowerSprout(em,
-               new float3((i + 0.5f) * width+bounds.x,0,(j+0.5f)*height+bounds.w),
+             result[index]= MakeFlowerSprout(em,
+               new float3((i + 0.5f) * width+bounds.x ,0,(j+0.5f)*height+bounds.w + offset),
                width/2.1f,index);
          }
       }
