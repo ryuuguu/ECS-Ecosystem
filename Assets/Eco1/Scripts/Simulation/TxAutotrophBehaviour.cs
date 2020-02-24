@@ -616,10 +616,10 @@ namespace EcoSim {
                 [ReadOnly] ref Translation translation
             ) {
                 float MutateMult(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
-                    float rangeH) {
+                    float rangeH, float min, float max) {
                     bool mutate = rate < random.NextFloat(0, 1);
                     if (mutate) {
-                        var mutant = math.max(1, val * random.NextFloat(rangeL, rangeH));
+                        var mutant = math.min(max, math.max(min, val * random.NextFloat(rangeL, rangeH)));
                         return math.max(1, mutant);
                     }
                     else {
@@ -678,9 +678,9 @@ namespace EcoSim {
                         var chrome1AB = txAutotrophChrome1AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
                             chrome1AB.ValueA[i] = MutateMult(chrome1AB.ValueA[i], ref randomComponent.random
-                                , mRate, mRangeL, mRangeH);
+                                , mRate, mRangeL, mRangeH, txAutotrophConsts.minAllele, txAutotrophConsts.maxAllele);
                             chrome1AB.ValueB[i] = MutateMult(chrome1AB.ValueB[i], ref randomComponent.random
-                                , mRate, mRangeL, mRangeH);
+                                , mRate, mRangeL, mRangeH, txAutotrophConsts.minAllele, txAutotrophConsts.maxAllele);
                         }
 
                         var chrome1W = chrome1AB.GetChrome1W();

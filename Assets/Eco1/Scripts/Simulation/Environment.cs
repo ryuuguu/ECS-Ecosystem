@@ -267,6 +267,8 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
         public float mutationRate;
         public float mutationRange;
         public float crossBreedDistance;
+        public float minAllele;
+        public float maxAllele;
 
          
 
