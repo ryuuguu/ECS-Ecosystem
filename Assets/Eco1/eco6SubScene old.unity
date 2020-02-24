@@ -34259,6 +34259,27 @@ MonoBehaviour:
       mutationRate: 0.05
       mutationRange: 0.05
       crossBreedDistance: 10000
+      mutationLimitsChrome1:
+        ValueA:
+          nrg2Leaf: 1
+          nrg2Seed: 1
+          nrg2Height: 1
+          nrg2Storage: 1
+          maxLeaf: 1
+          maxHeight: 1
+          seedSize: 1
+          ageRate: 1
+          pollenRange: 1
+        ValueB:
+          nrg2Leaf: 10
+          nrg2Seed: 10
+          nrg2Height: 10
+          nrg2Storage: 10
+          maxLeaf: 10
+          maxHeight: 10
+          seedSize: 10
+          ageRate: 10
+          pollenRange: 10
       colorGeneMaxDistanceSq: 10000
     environmentConsts:
       ambientLight: 4
@@ -34285,7 +34306,7 @@ MonoBehaviour:
       heightArraySize: 129
       lightArraySize: 129
     graphicsSettings:
-      petals: 0
+      petals: 1
       leaves: 0
       stems: 1
   initialGridSize:

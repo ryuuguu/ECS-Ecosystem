@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Eco1/eco6SubScene.unity
+    path: Assets/Eco1/eco6SubScene old.unity
     guid: 61fc9a85d08114b8a9d519d1605ac479
   m_configObjects: {}

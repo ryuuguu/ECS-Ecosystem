@@ -678,9 +678,13 @@ namespace EcoSim {
                         var chrome1AB = txAutotrophChrome1AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
                             chrome1AB.ValueA[i] = MutateMult(chrome1AB.ValueA[i], ref randomComponent.random
-                                , mRate, mRangeL, mRangeH, txAutotrophConsts.minAllele, txAutotrophConsts.maxAllele);
+                                , mRate, mRangeL, mRangeH,
+                                txAutotrophConsts.mutationLimitsChrome1.ValueA[i],
+                                txAutotrophConsts.mutationLimitsChrome1.ValueB[i]);
                             chrome1AB.ValueB[i] = MutateMult(chrome1AB.ValueB[i], ref randomComponent.random
-                                , mRate, mRangeL, mRangeH, txAutotrophConsts.minAllele, txAutotrophConsts.maxAllele);
+                                , mRate, mRangeL, mRangeH,
+                                txAutotrophConsts.mutationLimitsChrome1.ValueA[i],
+                                txAutotrophConsts.mutationLimitsChrome1.ValueB[i]);
                         }
 
                         var chrome1W = chrome1AB.GetChrome1W();
