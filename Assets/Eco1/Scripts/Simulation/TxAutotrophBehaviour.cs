@@ -399,9 +399,7 @@ namespace EcoSim {
             public Entity prefabPollenEntity;
             public EntityCommandBuffer.Concurrent ecb;
             [ReadOnly] public NativeArray<Environment.EnvironmentSettings> environmentSettings;
-            //[ReadOnly] public ComponentDataFromEntity<TxAutotrophChrome1AB> txAutotrophChrome1ABCD;
-            //[ReadOnly] public ComponentDataFromEntity<TxAutotrophPollen> txAutotrophPollenCD;
-
+            
             public void Execute(Entity entity, int index,
                 ref RandomComponent randomComponent,
                 [ReadOnly] ref TxAutotrophGamete txAutotrophGamete,
@@ -692,9 +690,9 @@ namespace EcoSim {
                         var chrome2AB = txAutotrophChrome2AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
                             chrome2AB.ValueA[i] = MutateChrome2(chrome2AB.ValueA[i], ref random
-                                , mRate, -2, 2);
+                                , mRate, -10, 10);
                             chrome2AB.ValueB[i] = MutateChrome2(chrome2AB.ValueB[i], ref random
-                                , mRate, -2, 2);
+                                , mRate, -10, 10);
                                 
                         }
                         randomComponent.random = random;

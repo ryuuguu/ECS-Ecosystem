@@ -127,12 +127,13 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 InitPlants();
                 break;
         }
-
+/*
         if (Time.frameCount % 100 == 0) {
             es = environmentSettings[0];
             es.graphicsSettings.petals = ! es.graphicsSettings.petals;
             environmentSettings[0] = es;
         }
+        */
         frameCount.text = "Frames: " + Time.frameCount;
         var countArray= em.CreateEntityQuery(ComponentType.ReadOnly<TxAutotrophPhenotype>())
             .ToEntityArray(Allocator.TempJob);
