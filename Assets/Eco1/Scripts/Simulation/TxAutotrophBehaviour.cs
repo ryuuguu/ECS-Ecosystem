@@ -617,7 +617,7 @@ namespace EcoSim {
             ) {
                 float MutateMult(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
                     float rangeH, float min, float max) {
-                    bool mutate = rate < random.NextFloat(0, 1);
+                    bool mutate = rate > random.NextFloat(0, 1);
                     if (mutate) {
                         var mutant = math.min(max, math.max(min, val * random.NextFloat(rangeL, rangeH)));
                         return math.max(1, mutant);
@@ -629,7 +629,7 @@ namespace EcoSim {
 
                 float MutateChrome2(float val, ref Unity.Mathematics.Random random, float rate, float rangeL,
                     float rangeH) {
-                    bool mutate = rate < random.NextFloat(0, 1);
+                    bool mutate = rate > random.NextFloat(0, 1);
                     if (mutate) {
                         var mutant = val + random.NextFloat(rangeL, rangeH);
                         return math.max(TxAutotrophChrome2AB.MIN, math.min(TxAutotrophChrome2AB.MAX, mutant));
@@ -672,16 +672,15 @@ namespace EcoSim {
 
                         ecb.AddComponent<RandomComponent>(index, e, new RandomComponent()
                             {random = new Unity.Mathematics.Random(randomComponent.random.NextUInt())});
-
-
-
+                        
                         var chrome1AB = txAutotrophChrome1AB.Copy();
+                        var random = randomComponent.random;
                         for (int i = 0; i < TxAutotrophChrome1.LENGTH; i++) {
-                            chrome1AB.ValueA[i] = MutateMult(chrome1AB.ValueA[i], ref randomComponent.random
+                            chrome1AB.ValueA[i] = MutateMult(chrome1AB.ValueA[i], ref random
                                 , mRate, mRangeL, mRangeH,
                                 txAutotrophConsts.mutationLimitsChrome1.ValueA[i],
                                 txAutotrophConsts.mutationLimitsChrome1.ValueB[i]);
-                            chrome1AB.ValueB[i] = MutateMult(chrome1AB.ValueB[i], ref randomComponent.random
+                            chrome1AB.ValueB[i] = MutateMult(chrome1AB.ValueB[i], ref random
                                 , mRate, mRangeL, mRangeH,
                                 txAutotrophConsts.mutationLimitsChrome1.ValueA[i],
                                 txAutotrophConsts.mutationLimitsChrome1.ValueB[i]);
@@ -692,12 +691,13 @@ namespace EcoSim {
                         ecb.AddComponent<TxAutotrophChrome1W>(index, e, chrome1W);
                         var chrome2AB = txAutotrophChrome2AB.Copy();
                         for (int i = 0; i < TxAutotrophChrome2.LENGTH; i++) {
-                            chrome2AB.ValueA[i] = MutateChrome2(chrome2AB.ValueA[i], ref randomComponent.random
+                            chrome2AB.ValueA[i] = MutateChrome2(chrome2AB.ValueA[i], ref random
                                 , mRate, -2, 2);
-                            chrome2AB.ValueB[i] = MutateChrome2(chrome2AB.ValueB[i], ref randomComponent.random
+                            chrome2AB.ValueB[i] = MutateChrome2(chrome2AB.ValueB[i], ref random
                                 , mRate, -2, 2);
+                                
                         }
-
+                        randomComponent.random = random;
                         ecb.AddComponent(index, e, chrome2AB);
 
                     }

@@ -213,17 +213,20 @@ public class Environment : MonoBehaviour,IDeclareReferencedPrefabs {
                 em.AddComponentData(entity, new TxAutotrophSprout {location = position, energy = 5});
 
                 var chrome1AB = txAutotrophChrome1Ab.RandomRange(ref random);
-                em.AddComponentData(entity,
-                    new TxAutotrophGamete {isFertilized = true, txAutotrophChrome1AB = chrome1AB});
                 em.AddComponentData(entity, chrome1AB);
                 em.AddComponentData(entity, chrome1AB.GetChrome1W());
-                var chrome2 = new TxAutotrophChrome2();
+                var chrome2AB = new TxAutotrophChrome2AB();
                 for (int j = 0; j < TxAutotrophChrome2.LENGTH; j++) {
-                    chrome2[j] = 50;
+                    chrome2AB.ValueA[j] = 50;
+                    chrome2AB.ValueB[j] = 50;
                 }
-                //chrome2[i] = 25;
-
-                em.AddComponentData(entity, new TxAutotrophChrome2AB {ValueA = chrome2, ValueB = chrome2});
+                em.AddComponentData(entity, chrome2AB);
+                em.AddComponentData(entity,
+                    new TxAutotrophGamete {
+                        isFertilized = true,
+                        txAutotrophChrome1AB = chrome1AB,
+                        txAutotrophChrome2AB = chrome2AB
+                    });
             }
         }
 
